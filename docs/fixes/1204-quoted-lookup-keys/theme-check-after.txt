@@ -1,0 +1,24 @@
+$ theme-check repro-theme  (LiquidHTMLSyntaxError only)
+snippets/true-positives.liquid:1:64  [LiquidHTMLSyntaxError] Arguments must be provided in the format `for in <array> <positional arguments> <named arguments>`. Invalid/Unknown arguments: limit1: 2  (autofixable)
+snippets/true-positives.liquid:4:64  [LiquidHTMLSyntaxError] Arguments must be provided in the format `for in <array> <positional arguments> <named arguments>`. Invalid/Unknown arguments: reversed  (autofixable)
+snippets/true-positives.liquid:7:38  [LiquidHTMLSyntaxError] Arguments must be provided in the format `for in <array> <positional arguments> <named arguments>`. Invalid/Unknown arguments: extra  (autofixable)
+3 offense(s)
+
+$ theme-check --auto-correct  (diff of what autofix would write)
+diff -ru a/snippets/true-positives.liquid b/snippets/true-positives.liquid
+--- a/snippets/true-positives.liquid
++++ b/snippets/true-positives.liquid
+@@ -1,9 +1,9 @@
+-{%- for value in product.options_by_name['hello world'].values limit1: 2 -%}
++{%- for value in product.options_by_name['hello world'].values  -%}
+   {{ value }}
+ {%- endfor -%}
+-{%- for value in product.options_by_name['hello world'].values limit: 2 reversed -%}
++{%- for value in product.options_by_name['hello world'].values limit: 2 -%}
+   {{ value }}
+ {%- endfor -%}
+-{%- for value in collection.products extra -%}
++{%- for value in collection.products  -%}
+   {{ value }}
+ {%- endfor -%}
+

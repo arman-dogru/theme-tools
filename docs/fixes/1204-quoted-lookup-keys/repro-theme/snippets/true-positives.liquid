@@ -1,0 +1,9 @@
+{%- for value in product.options_by_name['hello world'].values limit1: 2 -%}
+  {{ value }}
+{%- endfor -%}
+{%- for value in product.options_by_name['hello world'].values limit: 2 reversed -%}
+  {{ value }}
+{%- endfor -%}
+{%- for value in collection.products extra -%}
+  {{ value }}
+{%- endfor -%}

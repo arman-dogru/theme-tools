@@ -1,0 +1,4 @@
+extends: nothing
+LiquidHTMLSyntaxError:
+  enabled: true
+  severity: 0

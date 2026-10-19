@@ -1,0 +1,44 @@
+$ theme-check repro-theme  (LiquidHTMLSyntaxError only)
+snippets/options-by-name.liquid:1:49  [LiquidHTMLSyntaxError] Arguments must be provided in the format `for in <array> <positional arguments> <named arguments>`. Invalid/Unknown arguments: world'].values  (autofixable)
+snippets/options-by-name.liquid:4:48  [LiquidHTMLSyntaxError] Arguments must be provided in the format `for in <array> <positional arguments> <named arguments>`. Invalid/Unknown arguments: Chart"].values  (autofixable)
+snippets/options-by-name.liquid:7:53  [LiquidHTMLSyntaxError] Arguments must be provided in the format `tablerow in <array> <positional arguments> <named arguments>`. Invalid/Unknown arguments: size'].values  (autofixable)
+snippets/true-positives.liquid:1:49  [LiquidHTMLSyntaxError] Arguments must be provided in the format `for in <array> <positional arguments> <named arguments>`. Invalid/Unknown arguments: world'].values, limit1: 2  (autofixable)
+snippets/true-positives.liquid:4:49  [LiquidHTMLSyntaxError] Arguments must be provided in the format `for in <array> <positional arguments> <named arguments>`. Invalid/Unknown arguments: world'].values, reversed  (autofixable)
+snippets/true-positives.liquid:7:38  [LiquidHTMLSyntaxError] Arguments must be provided in the format `for in <array> <positional arguments> <named arguments>`. Invalid/Unknown arguments: extra  (autofixable)
+6 offense(s)
+
+$ theme-check --auto-correct  (diff of what autofix would write)
+diff -ru a/snippets/options-by-name.liquid b/snippets/options-by-name.liquid
+--- a/snippets/options-by-name.liquid
++++ b/snippets/options-by-name.liquid
+@@ -1,10 +1,10 @@
+-{%- for value in product.options_by_name['hello world'].values -%}
++{%- for value in product.options_by_name['hello  -%}
+   {{ value }}
+ {%- endfor -%}
+-{%- for value in product.options_by_name["Size Chart"].values limit: 2 -%}
++{%- for value in product.options_by_name["Size limit: 2 -%}
+   {{ value }}
+ {%- endfor -%}
+-{%- tablerow value in product.options_by_name['Pack size'].values cols: 2 -%}
++{%- tablerow value in product.options_by_name['Pack cols: 2 -%}
+   {{ value }}
+ {%- endtablerow -%}
+ {%- assign colors = product.options_by_name['Fabric color'].values -%}
+diff -ru a/snippets/true-positives.liquid b/snippets/true-positives.liquid
+--- a/snippets/true-positives.liquid
++++ b/snippets/true-positives.liquid
+@@ -1,9 +1,9 @@
+-{%- for value in product.options_by_name['hello world'].values limit1: 2 -%}
++{%- for value in product.options_by_name['hello  -%}
+   {{ value }}
+ {%- endfor -%}
+-{%- for value in product.options_by_name['hello world'].values limit: 2 reversed -%}
++{%- for value in product.options_by_name['hello limit: 2 -%}
+   {{ value }}
+ {%- endfor -%}
+-{%- for value in collection.products extra -%}
++{%- for value in collection.products  -%}
+   {{ value }}
+ {%- endfor -%}
+

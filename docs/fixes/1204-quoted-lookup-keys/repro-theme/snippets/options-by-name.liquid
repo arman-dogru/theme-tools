@@ -1,0 +1,12 @@
+{%- for value in product.options_by_name['hello world'].values -%}
+  {{ value }}
+{%- endfor -%}
+{%- for value in product.options_by_name["Size Chart"].values limit: 2 -%}
+  {{ value }}
+{%- endfor -%}
+{%- tablerow value in product.options_by_name['Pack size'].values cols: 2 -%}
+  {{ value }}
+{%- endtablerow -%}
+{%- assign colors = product.options_by_name['Fabric color'].values -%}
+{%- echo product.options_by_name['Fabric color'].name -%}
+{%- if product.options_by_name['Fabric color'].values.size > 1 -%}multi{%- endif -%}
