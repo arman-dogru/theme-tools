@@ -15,7 +15,14 @@ const SINGLE_QUOTED_STRING = `'[^']*'`;
 // To avoid any issues, we will remove extra spaces.
 const RANGE_MARKUP_COMPONENT_REGEX = `\\s*(-?\\d+(?:\\.\\d+)?|\\w+(?:\\.\\w+)*)\\s*`;
 const RANGE_MARKUP_REGEX = `\\(\\s*${RANGE_MARKUP_COMPONENT_REGEX}(\\.{2,})\\s*${RANGE_MARKUP_COMPONENT_REGEX}\\s*\\)`;
-const REGULAR_TOKEN = `[^\\s,]+`; // tokens separated by commas or spaces
+// A balanced `[...]` lookup such as `['hello world']`, `[ "a, b" ]` or `[b['c d']]` (one level of
+// nesting). Quoted strings inside the brackets are matched whole, so a quoted `]` does not close it.
+const BRACKET_CONTENT = `(?:${DOUBLE_QUOTED_STRING}|${SINGLE_QUOTED_STRING}|[^\\[\\]'"])*`;
+const BRACKETED_LOOKUP = `\\[(?:${DOUBLE_QUOTED_STRING}|${SINGLE_QUOTED_STRING}|\\[${BRACKET_CONTENT}\\]|[^\\[\\]'"])*\\]`;
+// Tokens are separated by commas or spaces, except inside a bracketed lookup, where spaces and
+// commas belong to the key (e.g. `product.options_by_name['hello world'].values` is one token).
+// Unbalanced brackets fall through to the single-character branch, so no input is dropped.
+const REGULAR_TOKEN = `(?:${BRACKETED_LOOKUP}|[^\\s,])+`;
 
 // Quoted strings pattern (combination of double and single quoted)
 const QUOTED_STRING = `(${DOUBLE_QUOTED_STRING}|${SINGLE_QUOTED_STRING})`;

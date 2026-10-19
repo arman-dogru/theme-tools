@@ -21,27 +21,48 @@ export function detectInvalidLoopArguments(
     return;
   }
 
-  let markup: ForMarkup | string = (node as LiquidTagFor | LiquidTagTablerow).markup;
+  const markup: ForMarkup | string = (node as LiquidTagFor | LiquidTagTablerow).markup;
 
   if (!markup) {
     return;
   }
 
+  // `argumentFragments` are the fragments after `<variable> in <collection>`, with indices relative
+  // to `argumentsOffset` (an absolute offset into node.source).
+  let argumentFragments: { value: string; index?: number }[];
+  let argumentsOffset: number;
+
   if (typeof markup !== 'string') {
-    markup = markup.source.slice(markup.position.start, markup.position.end);
+    // The markup parsed, so the parser already knows where `<collection>` ends. Only tokenize what
+    // follows it. Tokenizing the whole markup would split collection expressions that contain
+    // whitespace, e.g. `product.options_by_name['hello world'].values`, and the autofix would then
+    // delete part of the collection.
+    argumentsOffset = markup.collection.position.end;
+    argumentFragments = getFragmentsInMarkup(
+      node.source.slice(argumentsOffset, markup.position.end),
+    );
+  } else {
+    // The markup did not parse. Fall back to the fragment tokenizer, which keeps quoted strings,
+    // ranges and bracketed lookups together.
+    const fragments = getFragmentsInMarkup(markup);
+
+    // The first three fragments are: `<variable> in <array>`
+    // If they haven't started typing the tag, we don't want to report an error.
+    if (fragments.length <= 3) {
+      return;
+    }
+
+    argumentsOffset = node.source.indexOf(markup, node.position.start);
+    argumentFragments = fragments.slice(3);
   }
 
-  const fragments = getFragmentsInMarkup(markup);
-
-  // The first three fragments are: `<variable> in <array>`
-  // If they haven't started typing the tag, we don't want to report an error.
-  if (fragments.length <= 3) {
+  if (argumentFragments.length === 0 || argumentsOffset < 0) {
     return;
   }
 
-  const markupIndex = node.source.indexOf(markup, node.position.start);
-  let startIndex = markupIndex + fragments.at(3)!.index!;
-  let endIndex = markupIndex + fragments.at(-1)!.index! + fragments.at(-1)!.value.length;
+  const startIndex = argumentsOffset + argumentFragments.at(0)!.index!;
+  const endIndex =
+    argumentsOffset + argumentFragments.at(-1)!.index! + argumentFragments.at(-1)!.value.length;
 
   const filteredFragments: string[] = [];
 
@@ -49,9 +70,7 @@ export function detectInvalidLoopArguments(
   let noMorePositionalArguments = false;
   const invalidFragments: string[] = [];
 
-  for (let i = 3; i < fragments.length; i++) {
-    const fragment = fragments[i];
-
+  for (const fragment of argumentFragments) {
     if (doesFragmentContainUnsupportedParentheses(fragment.value)) {
       noMorePositionalArguments = true;
       invalidFragments.push(fragment.value);

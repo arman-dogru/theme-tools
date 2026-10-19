@@ -97,9 +97,12 @@ describe('detectInvalidLoopArguments', async () => {
         `{% for x in product.options_by_name[ 'Size' ].values %}{% endfor %}`,
         // Nested bracket lookups
         `{% for x in a[b['c d']] %}{% endfor %}`,
-        // Deeper nesting than the fragment tokenizer understands: the parsed AST still knows
-        // where the collection ends
         `{% for x in a[b[c['d e']]] %}{% endfor %}`,
+        // Collections the fragment tokenizer cannot keep together on its own (spaced range bounds
+        // with lookups, deeper nesting): the parsed AST still knows where the collection ends
+        `{% for i in ( 1 .. product.options_by_name['hello world'].values.size ) %}{% endfor %}`,
+        `{% for i in (1 .. settings['max count']) limit: 2 %}{% endfor %}`,
+        `{% for x in a[ b[c[d]] ] %}{% endfor %}`,
         // Quoted key inside a range bound
         `{% for i in (1..product.options_by_name['hello world'].values.size) %}{% endfor %}`,
         // Inside {% liquid %}

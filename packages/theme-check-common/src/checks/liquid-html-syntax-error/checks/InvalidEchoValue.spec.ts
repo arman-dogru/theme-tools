@@ -105,4 +105,29 @@ describe('detectInvalidEchoValue', async () => {
       expect(fixed).to.equal(expected);
     }
   });
+
+  it('should keep a bracketed lookup whole when reporting trailing values (issue #1204)', async () => {
+    const valid = [
+      `{% echo product.options_by_name['Fabric color'].name %}`,
+      `{{ product.options_by_name['Fabric color'].name | upcase }}`,
+    ];
+    for (const sourceCode of valid) {
+      const offenses = await runLiquidCheck(LiquidHTMLSyntaxError, sourceCode);
+      expect(offenses, sourceCode).to.have.length(0);
+    }
+
+    const testCases = [
+      [
+        `{% echo product.options_by_name['Fabric color'].name extra %}`,
+        `{% echo product.options_by_name['Fabric color'].name %}`,
+      ],
+      [`{{ a['b c'] b }}`, `{{ a['b c'] }}`],
+    ];
+    for (const [sourceCode, expected] of testCases) {
+      const offenses = await runLiquidCheck(LiquidHTMLSyntaxError, sourceCode);
+      expect(offenses, sourceCode).to.have.length(1);
+      expect(offenses[0].message).to.equal('Syntax is not supported');
+      expect(applyFix(sourceCode, offenses[0])).to.equal(expected);
+    }
+  });
 });

@@ -79,4 +79,29 @@ describe('detectMultipleAssignValues', async () => {
       expect(fixed).to.equal(expected);
     }
   });
+
+  it('should keep a bracketed lookup whole when reporting trailing values (issue #1204)', async () => {
+    const valid = [
+      `{% assign colors = product.options_by_name['Fabric color'].values %}`,
+      `{% assign colors = product.options_by_name['Fabric color'].values | join: ', ' %}`,
+    ];
+    for (const sourceCode of valid) {
+      const offenses = await runLiquidCheck(LiquidHTMLSyntaxError, sourceCode);
+      expect(offenses, sourceCode).to.have.length(0);
+    }
+
+    const testCases = [
+      [
+        `{% assign colors = product.options_by_name['Fabric color'].values extra %}`,
+        `{% assign colors = product.options_by_name['Fabric color'].values %}`,
+      ],
+      [`{% assign x = a['b c'] a['d e'] %}`, `{% assign x = a['b c'] %}`],
+    ];
+    for (const [sourceCode, expected] of testCases) {
+      const offenses = await runLiquidCheck(LiquidHTMLSyntaxError, sourceCode);
+      expect(offenses, sourceCode).to.have.length(1);
+      expect(offenses[0].message).to.equal('Syntax is not supported');
+      expect(applyFix(sourceCode, offenses[0])).to.equal(expected);
+    }
+  });
 });
