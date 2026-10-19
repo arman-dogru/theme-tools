@@ -59,6 +59,65 @@ describe('getFragmentsInMarkup', () => {
   });
 });
 
+describe('getFragmentsInMarkup with bracketed lookups', () => {
+  it('should keep a quoted key containing spaces in one fragment', () => {
+    const markup = `value in product.options_by_name['hello world'].values limit: 2`;
+    expect(getFragmentsInMarkup(markup).map((f) => f.value)).to.deep.equal([
+      'value',
+      'in',
+      "product.options_by_name['hello world'].values",
+      'limit: 2',
+    ]);
+  });
+
+  it('should keep double quotes, commas, inner spaces and one level of nesting together', () => {
+    const cases: [string, string][] = [
+      [`a["hello world"].b`, `a["hello world"].b`],
+      [`a['x, y']`, `a['x, y']`],
+      [`a[ 'x' ]`, `a[ 'x' ]`],
+      [`a[b['c d']].e`, `a[b['c d']].e`],
+      [`a['['] b`, `a['[']`],
+      [`a[']'] b`, `a[']']`],
+    ];
+    for (const [markup, first] of cases) {
+      expect(getFragmentsInMarkup(markup).at(0)?.value, markup).to.equal(first);
+    }
+  });
+
+  it('should keep a bracketed lookup together in key-value pair values', () => {
+    const markup = `limit: settings['max items'] offset: 1`;
+    expect(getFragmentsInMarkup(markup).map((f) => f.value)).to.deep.equal([
+      "limit: settings['max items']",
+      'offset: 1',
+    ]);
+    expect(fragmentKeyValuePair("limit: settings['max items']")).to.deep.equal({
+      key: 'limit',
+      value: "settings['max items']",
+    });
+  });
+
+  it('should still split on spaces and commas outside brackets', () => {
+    expect(getFragmentsInMarkup(`a['b'] c, d`).map((f) => f.value)).to.deep.equal([
+      "a['b']",
+      'c',
+      'd',
+    ]);
+  });
+
+  it('should not drop characters from unbalanced brackets', () => {
+    expect(getFragmentsInMarkup(`a[ b`).map((f) => f.value)).to.deep.equal(['a[', 'b']);
+    expect(getFragmentsInMarkup(`a] b`).map((f) => f.value)).to.deep.equal(['a]', 'b']);
+  });
+
+  it('should keep a bracketed lookup together in getValuesInMarkup', () => {
+    expect(getValuesInMarkup(`a['b c'] == 'd e'`).map((f) => f.value)).to.deep.equal([
+      "a['b c']",
+      '==',
+      "'d e'",
+    ]);
+  });
+});
+
 describe('fragmentKeyValuePair', () => {
   it('should return the key and value of the key-value pair', () => {
     const fragment = 'key: value';
