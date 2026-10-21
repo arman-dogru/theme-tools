@@ -1,6 +1,6 @@
 import { expect, describe, it, assert } from 'vitest';
 import { UndefinedObject } from './index';
-import { runLiquidCheck, highlightedOffenses } from '../../test';
+import { runLiquidCheck, highlightedOffenses, check } from '../../test';
 import { Offense } from '../../types';
 import {
   SECTION_CONTEXTUAL_OBJECTS,
@@ -392,18 +392,38 @@ describe('Module: UndefinedObject', () => {
   });
 
   it('should allow every section object in theme-mode snippets and theme blocks (issue #944)', async () => {
-    // A theme block is rendered inside a section and a snippet is rendered from
-    // a section or block, so they can read what the section can read.
-    expect(THEME_BLOCK_AND_SNIPPET_CONTEXTUAL_OBJECTS).toEqual(
-      expect.arrayContaining([...SECTION_CONTEXTUAL_OBJECTS]),
-    );
-    for (const object of SECTION_CONTEXTUAL_OBJECTS) {
+    // A theme block is rendered inside a section and a snippet is usually
+    // rendered from a section or block, so they may read what the section reads.
+    for (const object of ['section', 'predictive_search', 'recommendations', 'comment']) {
       for (const file of ['snippets/my-snippet.liquid', 'blocks/my-block.liquid']) {
         const sourceCode = `{% doc %} @param {string} x - x {% enddoc %}{{ ${object} }}`;
         const offenses = await runLiquidCheck(UndefinedObject, sourceCode, file);
         expect(offenses, `Expected no offense for '${object}' in ${file}`).toHaveLength(0);
       }
     }
+  });
+
+  it('should keep theme snippets and blocks a superset of the section objects (parity)', () => {
+    expect([...THEME_BLOCK_AND_SNIPPET_CONTEXTUAL_OBJECTS].sort()).toEqual(
+      ['app', 'block', ...SECTION_CONTEXTUAL_OBJECTS].sort(),
+    );
+  });
+
+  it('accepts section objects in a snippet even when only a layout renders it (known limitation)', async () => {
+    // The file path can't tell who renders a snippet. A snippet rendered only
+    // from layout/theme.liquid has no predictive_search at runtime, but it is
+    // accepted, the same broad allowance upstream makes for section/block.
+    const theme = {
+      'layout/theme.liquid': `<body>{% render 'search-results' %}</body>`,
+      'snippets/search-results.liquid': `
+        {% doc %} @param {string} [heading] - Heading {% enddoc %}
+        {{ predictive_search.terms }}
+      `,
+    };
+    const offenses = await check(theme, [UndefinedObject]);
+    expect(offenses.map((o) => `${o.uri.split('/').slice(-2).join('/')}: ${o.message}`)).toEqual(
+      [],
+    );
   });
 
   it('should allow comment in a theme snippet that posts a new_comment form', async () => {

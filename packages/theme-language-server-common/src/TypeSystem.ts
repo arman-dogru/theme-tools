@@ -364,9 +364,11 @@ function isThemeBlockFile(uri: string): boolean {
 }
 
 /**
- * The path-contextual objects come from theme-check-common, the same lists
- * UndefinedObject uses, so a file the check accepts an object in is a file
- * the editor types and completes it in.
+ * The path-contextual object lists come from theme-check-common, the same
+ * definitions UndefinedObject uses. The file classification below (regexes) is
+ * still separate from the check's `startsWith` tests, so the two can disagree
+ * on unusual paths. For blocks and snippets these are objects the file *may*
+ * be able to read, depending on who renders it; see contextual-objects.ts.
  */
 function getContextualEntries(uri: string, mode: Mode = 'theme'): readonly string[] {
   const normalizedUri = path.normalize(uri);

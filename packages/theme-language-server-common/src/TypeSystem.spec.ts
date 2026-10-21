@@ -795,8 +795,9 @@ describe('Module: TypeSystem', () => {
       );
     };
 
-    // The lists are imported from theme-check-common, the same ones the check
-    // uses, so adding an object there without the editor following fails here.
+    // The one parity test that uses the exported lists: they are the same
+    // definitions the check uses, so adding an object there without the editor
+    // following fails here. Other tests spell out literal expectations.
     const cases: [string, readonly string[]][] = [
       ['sections/a.liquid', SECTION_CONTEXTUAL_OBJECTS],
       ['blocks/a.liquid', THEME_BLOCK_AND_SNIPPET_CONTEXTUAL_OBJECTS],
@@ -826,9 +827,116 @@ describe('Module: TypeSystem', () => {
 
     it('keeps section objects unknown outside sections, blocks and snippets', async () => {
       for (const path of ['templates/search.liquid', 'layout/theme.liquid', 'file.liquid']) {
-        for (const object of SECTION_CONTEXTUAL_OBJECTS) {
+        for (const object of ['section', 'predictive_search', 'recommendations', 'comment']) {
           expect(await inferAt(object, path), `${object} in ${path}`).to.eql('unknown');
         }
+      }
+    });
+  });
+
+  describe('section objects in snippets: nested lookups and app mode (issue #944)', () => {
+    const objects: ObjectEntry[] = [
+      {
+        name: 'predictive_search',
+        access: { global: false, parents: [], template: [] },
+        return_type: [],
+        properties: [
+          { name: 'resources', return_type: [{ type: 'predictive_search_resources', name: '' }] },
+          { name: 'terms', return_type: [{ type: 'string', name: '' }] },
+        ],
+      },
+      {
+        name: 'predictive_search_resources',
+        access: { global: false, parents: [], template: [] },
+        return_type: [],
+        properties: [
+          { name: 'products', return_type: [{ type: 'array', array_value: 'product' }] },
+        ],
+      },
+      {
+        name: 'product',
+        access: { global: false, parents: [], template: [] },
+        return_type: [],
+        properties: [{ name: 'title', return_type: [{ type: 'string', name: '' }] }],
+      },
+      {
+        name: 'comment',
+        access: { global: false, parents: [], template: [] },
+        return_type: [],
+      },
+    ];
+    const docset = {
+      tags: async () => [],
+      objects: async () => objects,
+      liquidDrops: async () => objects,
+      filters: async () => [],
+      systemTranslations: async () => ({}),
+    };
+    const noMetafields = async () => ({}) as MetafieldDefinitionMap;
+    const themeTypes = new TypeSystem(
+      docset,
+      async () => [],
+      noMetafields,
+      async () => 'theme',
+    );
+    const appTypes = new TypeSystem(
+      docset,
+      async () => [],
+      noMetafields,
+      async () => 'app',
+    );
+    const snippet = pathUtils.normalize(
+      URI.from({ scheme: 'file', path: 'snippets/predictive-search-results.liquid' }),
+    );
+    const docTag = '{% doc %} @param {string} heading - The heading {% enddoc %}';
+    const outputAt = (source: string, index: number) => {
+      const ast = toLiquidHtmlAST(source);
+      const outputs: LiquidVariableOutput[] = [];
+      visit<SourceCodeType.LiquidHtml, void>(ast, {
+        LiquidVariableOutput: (node) => {
+          outputs.push(node);
+        },
+      });
+      return { ast, output: outputs[index] };
+    };
+
+    it('infers predictive_search.resources.products in a doc-tagged theme snippet', async () => {
+      const { ast, output } = outputAt(`${docTag}{{ predictive_search.resources.products }}`, 0);
+      expect(await themeTypes.inferType(output.markup, ast, snippet)).to.eql({
+        kind: 'array',
+        valueType: 'product',
+      });
+    });
+
+    it('infers the loop variable over predictive_search.resources.products', async () => {
+      const { ast, output } = outputAt(
+        `${docTag}{% for p in predictive_search.resources.products %}{{ p }}{{ p.title }}{% endfor %}`,
+        0,
+      );
+      expect(await themeTypes.inferType(output.markup, ast, snippet)).to.eql('product');
+      const second = outputAt(
+        `${docTag}{% for p in predictive_search.resources.products %}{{ p }}{{ p.title }}{% endfor %}`,
+        1,
+      );
+      expect(await themeTypes.inferType(second.output.markup, second.ast, snippet)).to.eql(
+        'string',
+      );
+    });
+
+    it('does not type predictive_search or comment in app-mode snippets', async () => {
+      const cases: [string, InferredType][] = [
+        ['{{ predictive_search }}', 'unknown'],
+        // An unknown root makes every nested lookup untyped, not an array of products.
+        ['{{ predictive_search.resources.products }}', 'untyped'],
+        ['{{ comment }}', 'unknown'],
+      ];
+      for (const [source, expected] of cases) {
+        const { ast, output } = outputAt(`${docTag}${source}`, 0);
+        expect(await appTypes.inferType(output.markup, ast, snippet), source).to.eql(expected);
+        // Same source in theme mode is typed, so the app-mode result is the mode at work.
+        expect(await themeTypes.inferType(output.markup, ast, snippet), source).not.to.eql(
+          expected,
+        );
       }
     });
   });

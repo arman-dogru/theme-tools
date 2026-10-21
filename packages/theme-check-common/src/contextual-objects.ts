@@ -2,8 +2,12 @@
  * Liquid objects that are only defined in some file contexts. They are not
  * global in the docset (`access.global === false`, no `access.template`), so
  * `UndefinedObject` and the language server's `TypeSystem` both look them up
- * here by file path. Keep the path matching in each consumer; share only the
- * lists, so the check and the editor cannot drift apart.
+ * here by file path.
+ *
+ * Only the object lists are shared. Each consumer still classifies the file
+ * itself (`UndefinedObject` with `relativePath.startsWith(...)`, `TypeSystem`
+ * with path regexes), so the two can still disagree on unusual paths. Sharing
+ * that classification as well is a possible follow-up.
  */
 
 /**
@@ -31,13 +35,21 @@ export const APP_BLOCK_CONTEXTUAL_OBJECTS: readonly string[] = Object.freeze([
 ]);
 
 /**
- * Objects available in a theme's blocks and snippets.
+ * Objects *potentially* available in a theme's blocks and snippets.
  *
- * A theme block is rendered inside a section, and a snippet is rendered from a
- * section or a block. Shopify's `render` docs say a rendered snippet can read
- * "any objects that are directly accessible outside the snippet", e.g. a
- * snippet inside a section can access `section`. So whatever a section can
- * read (SECTION_CONTEXTUAL_OBJECTS), plus `block` and `app`, is readable here.
+ * A theme block is rendered inside a section, and a snippet is usually
+ * rendered from a section or a block. Shopify's `render` docs say a rendered
+ * snippet can read "any objects that are directly accessible outside the
+ * snippet", e.g. a snippet inside a section can access `section`. So whatever
+ * a section can read (SECTION_CONTEXTUAL_OBJECTS), plus `block` and `app`,
+ * may be readable here.
+ *
+ * This is not a guarantee. The file path does not say who renders the file: a
+ * snippet can also be rendered directly from a layout or template (e.g.
+ * `layout/theme.liquid` doing `{% render 'search-results' %}`), where these
+ * objects are not defined, and they are still accepted there. This is the same
+ * broad allowance upstream already makes for `section` and `block` in
+ * snippets; precise caller-context analysis is out of scope.
  *
  * Tag-scoped variables (`form`, `paginate`, `forloop`, ...) are not objects of
  * the section and are not passed by `render`, so they are not in this list.

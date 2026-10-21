@@ -397,6 +397,69 @@ describe('Module: ObjectCompletionProvider', async () => {
     }
   });
 
+  describe('section objects in snippets: nested properties and app mode (#944)', () => {
+    const objects: ObjectEntry[] = [
+      {
+        name: 'predictive_search',
+        access: { global: false, parents: [], template: [] },
+        properties: [
+          { name: 'resources', return_type: [{ type: 'predictive_search_resources', name: '' }] },
+          { name: 'terms', return_type: [{ type: 'string', name: '' }] },
+        ],
+      },
+      {
+        name: 'predictive_search_resources',
+        access: { global: false, parents: [], template: [] },
+        properties: [
+          { name: 'articles', return_type: [{ type: 'array', array_value: 'article' }] },
+          { name: 'products', return_type: [{ type: 'array', array_value: 'product' }] },
+        ],
+      },
+      {
+        name: 'product',
+        access: { global: false, parents: [], template: [] },
+        properties: [{ name: 'title', return_type: [{ type: 'string', name: '' }] }],
+      },
+      { name: 'comment', access: { global: false, parents: [], template: [] } },
+    ];
+    const makeProvider = (mode: 'theme' | 'app') =>
+      new CompletionsProvider({
+        documentManager: new DocumentManager(),
+        themeDocset: {
+          filters: async () => [],
+          objects: async () => objects,
+          liquidDrops: async () => objects,
+          tags: async () => [],
+          systemTranslations: async () => ({}),
+        },
+        getMetafieldDefinitions: async () => ({}) as MetafieldDefinitionMap,
+        getModeForURI: async () => mode,
+      });
+    const doc = '{% doc %} @param {string} heading - The heading {% enddoc %}';
+    const relativePath = 'snippets/predictive-search-results.liquid';
+
+    it('completes nested predictive_search properties in a doc-tagged theme snippet', async () => {
+      const provider = makeProvider('theme');
+      let source = `${doc}{{ predictive_search.resources.█ }}`;
+      await expect(provider, source).to.complete({ source, relativePath }, [
+        'articles',
+        'products',
+      ]);
+      source = `${doc}{% for p in predictive_search.resources.products %}{{ p.█ }}{% endfor %}`;
+      await expect(provider, source).to.complete({ source, relativePath }, ['title']);
+    });
+
+    it('does not complete predictive_search or comment in app-mode snippets', async () => {
+      const provider = makeProvider('app');
+      for (const object of ['predictive_search', 'comment']) {
+        const source = `${doc}{{ ${object}█ }}`;
+        await expect(provider, source).to.complete({ source, relativePath }, []);
+      }
+      const source = `${doc}{{ predictive_search.resources.█ }}`;
+      await expect(provider, source).to.complete({ source, relativePath }, []);
+    });
+  });
+
   it('should not complete anything if there is nothing to complete', async () => {
     await expect(provider).to.complete('{% assign x = "█" %}', []);
   });
