@@ -1,0 +1,9 @@
+{% doc %}
+  Rendered from sections/product-recommendations.liquid.
+
+  @param {string} heading - The list heading
+{% enddoc %}
+<h2>{{ heading }} ({{ recommendations.products_count }})</h2>
+{%- for product in recommendations.products -%}
+  <a href="{{ product.url }}">{{ product.title }}</a>
+{%- endfor -%}

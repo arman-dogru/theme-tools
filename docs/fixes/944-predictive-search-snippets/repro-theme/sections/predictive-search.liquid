@@ -1,9 +1,11 @@
 {%- if predictive_search.performed -%}
   {% render 'predictive-search-results', heading: 'Products' %}
+  {% content_for 'blocks' %}
 {%- endif -%}
 
 {% schema %}
 {
-  "name": "Predictive search"
+  "name": "Predictive search",
+  "blocks": [{ "type": "@theme" }]
 }
 {% endschema %}

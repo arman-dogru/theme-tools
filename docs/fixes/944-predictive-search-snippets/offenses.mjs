@@ -8,7 +8,14 @@ const tc = await import(path.join(path.resolve(root), 'packages/theme-check-node
 const { offenses } = await tc.themeCheckRun(theme, path.join(theme, '.theme-check.yml'), () => {});
 const rel = (uri) => path.relative(theme, new URL(uri).pathname);
 const lines = offenses
-  .map((o) => `${rel(o.uri)}:${o.start.line + 1}:${o.start.character + 1} [${o.check}] ${o.message}`)
-  .sort();
+  .sort(
+    (a, b) =>
+      rel(a.uri).localeCompare(rel(b.uri)) ||
+      a.start.line - b.start.line ||
+      a.start.character - b.start.character,
+  )
+  .map(
+    (o) => `${rel(o.uri)}:${o.start.line + 1}:${o.start.character + 1} [${o.check}] ${o.message}`,
+  );
 console.log(lines.join('\n'));
 console.log(`${lines.length} offense(s)`);
