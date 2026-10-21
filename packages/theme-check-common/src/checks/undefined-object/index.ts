@@ -235,8 +235,11 @@ function getContextualObjects(relativePath: string, mode: Mode = 'theme'): reado
 
   // In a theme app extension, blocks are app blocks and snippets can only be
   // rendered from them, so both get the app block objects. In a theme, blocks
-  // and snippets are rendered from a section (or a block inside one), so they
-  // can read what the section can read (#944). See contextual-objects.ts.
+  // and snippets are usually rendered from a section (or a block inside one),
+  // so they may read what the section can read (#944). The path can't tell us
+  // the caller, so this is potential availability, not a guarantee: a snippet
+  // rendered from a layout or template is accepted too, as upstream already
+  // does for `section` and `block`. See contextual-objects.ts.
   if (relativePath.startsWith('blocks/') || relativePath.startsWith('snippets/')) {
     return mode === 'app'
       ? APP_BLOCK_CONTEXTUAL_OBJECTS
