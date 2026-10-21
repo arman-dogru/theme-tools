@@ -48,6 +48,8 @@ def render_offenses():
 def probes(name):
     out = {}
     for line in (here / name).read_text().strip().splitlines():
+        if line.startswith("#"):
+            continue
         pid, mode, file, source, result = line.split("\t")
         out[pid] = (mode, file, source, result)
     return out
@@ -60,22 +62,25 @@ def render_ls():
     for pid in ids:
         mode, file, source, res_after = after[pid]
         res_before = before[pid][3]
-        wrap = lambda s: "\n".join(textwrap.wrap(s, 42)) or s
-        cells.append([pid, f"{mode}\n{file}", wrap(source), wrap(res_before), wrap(res_after)])
+        wrap = lambda s, n: "\n".join(textwrap.wrap(s, n, break_long_words=True)) or s
+        cells.append(
+            [pid, f"{mode}\n{file}", wrap(source, 40), wrap(res_before, 30), wrap(res_after, 30)]
+        )
         changed = res_before != res_after
         colors.append(["white", "white", "white",
                        "#fde2e2" if changed else "white", "#e2f5e6" if changed else "white"])
     fig, ax = plt.subplots(figsize=(14, 0.75 * (len(ids) + 2)))
     ax.axis("off")
-    ax.set_title("Language server (real Shopify docset): base ee5ab68 vs branch; "
-                 "shaded rows changed, K1/K2 are controls", loc="left", fontsize=11)
+    ax.set_title("Language server (bundled docset): base ee5ab68 vs branch; "
+                 "shaded cells changed; C*/H* are targets, K* are controls (expected unchanged)",
+                 loc="left", fontsize=11)
     table = ax.table(cellText=cells, cellColours=colors,
                      colLabels=["probe", "mode / file", "source (█ = cursor)", "before", "after"],
                      colWidths=[0.05, 0.15, 0.30, 0.25, 0.25], loc="upper left", cellLoc="left")
     table.auto_set_font_size(False)
     table.set_fontsize(8)
     for (r, _), cell in table.get_celld().items():
-        cell.set_height(0.085 if r else 0.05)
+        cell.set_height(0.08 if r else 0.045)
         if r == 0:
             cell.set_text_props(weight="bold")
     fig.savefig(here / "ls-before-after.png", dpi=130, bbox_inches="tight")

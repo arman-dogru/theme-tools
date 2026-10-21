@@ -1,7 +1,10 @@
 // Usage: node ls-capture.mjs <theme-tools-root>
 // Drives the built language server's CompletionsProvider and HoverProvider with
-// the real Shopify docset (theme-check-docs-updater) on small theme files and
-// prints one tab-separated line per probe: id, mode, file, source, result.
+// the docset bundled in packages/theme-check-docs-updater/data (written by that
+// package's postbuild, `node scripts/cli.js download data`) on small theme files.
+// Prints the docset revision, then one tab-separated line per probe:
+// id, mode, file, source, result. Probes K* are controls (expected unchanged).
+import fs from 'node:fs';
 import path from 'node:path';
 
 const root = path.resolve(process.argv[2] ?? '.');
@@ -9,11 +12,24 @@ const ls = (p) => import(path.join(root, 'packages/theme-language-server-common/
 const { CompletionsProvider } = await ls('completions/CompletionsProvider.js');
 const { HoverProvider } = await ls('hover/HoverProvider.js');
 const { DocumentManager } = await ls('documents/DocumentManager.js');
-const { ThemeLiquidDocsManager } = await import(
-  path.join(root, 'packages/theme-check-docs-updater/dist/index.js')
-);
 
-const docset = new ThemeLiquidDocsManager();
+const dataDir = path.join(root, 'packages/theme-check-docs-updater/data');
+if (!fs.existsSync(path.join(dataDir, 'objects.json'))) {
+  console.error(`${dataDir} is missing; run pnpm build (or node scripts/cli.js download data)`);
+  process.exit(1);
+}
+const json = (name) => JSON.parse(fs.readFileSync(path.join(dataDir, name), 'utf8'));
+const objects = json('objects.json');
+// Same shape as ThemeLiquidDocsManager, but only from the bundled files (no cache, no network).
+const docset = {
+  objects: async () => objects,
+  liquidDrops: async () => objects,
+  filters: async () => json('filters.json'),
+  tags: async () => json('tags.json'),
+  systemTranslations: async () => ({}),
+};
+console.log(`# docset ${json('latest.json').revision} (packages/theme-check-docs-updater/data)`);
+
 const noMetafields = async () => ({
   article: [],
   blog: [],
@@ -43,10 +59,18 @@ const probes = [
     'complete',
   ],
   ['C6', 'theme', 'blocks/b.liquid', '{{ predictive_search.█ }}', 'complete'],
+  [
+    'C7',
+    'theme',
+    'snippets/s.liquid',
+    "{% form 'new_comment', article %}{{ comment.█ }}{% endform %}",
+    'complete',
+  ],
   ['H1', 'theme', 'snippets/s.liquid', '{{ predictive_sea█rch }}', 'hover'],
-  ['H2', 'theme', 'blocks/b.liquid', '{{ recommenda█tions }}', 'hover'],
+  ['H2', 'theme', 'snippets/s.liquid', '{{ comm█ent.status }}', 'hover'],
   ['K1', 'theme', 'templates/search.liquid', '{{ predictive_search.█ }}', 'complete'],
   ['K2', 'app', 'snippets/s.liquid', '{{ pre█ }}', 'complete'],
+  ['K3', 'theme', 'blocks/b.liquid', '{{ recommenda█tions }}', 'hover'],
 ];
 
 for (const [id, mode, file, marked, kind] of probes) {
