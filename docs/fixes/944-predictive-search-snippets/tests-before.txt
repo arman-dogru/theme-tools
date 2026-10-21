@@ -1,18 +1,23 @@
 
  RUN  v4.1.11 .
 
- ❯ |shared| packages/theme-language-server-common/src/TypeSystem.spec.ts (106 tests | 3 failed | 1 skipped)
+ ❯ |shared| packages/theme-language-server-common/src/TypeSystem.spec.ts (109 tests | 6 failed | 1 skipped)
        × types every contextual object of blocks/a.liquid
        × types every contextual object of snippets/a.liquid
        × types predictive_search, recommendations and comment in theme-mode snippets and blocks
- ❯ |shared| packages/theme-check-common/src/checks/undefined-object/index.spec.ts (51 tests | 3 failed)
+       × infers predictive_search.resources.products in a doc-tagged theme snippet
+       × infers the loop variable over predictive_search.resources.products
+       × does not type predictive_search or comment in app-mode snippets
+ ❯ |shared| packages/theme-check-common/src/checks/undefined-object/index.spec.ts (53 tests | 4 failed)
      × should allow predictive_search in snippets with doc tags when in theme mode (issue #944)
      × should allow every section object in theme-mode snippets and theme blocks (issue #944)
+     × accepts section objects in a snippet even when only a layout renders it (known limitation)
      × should allow comment in a theme snippet that posts a new_comment form
- ❯ |isolated| packages/theme-language-server-common/src/completions/providers/ObjectCompletionProvider.spec.ts (33 tests | 1 failed)
+ ❯ |isolated| packages/theme-language-server-common/src/completions/providers/ObjectCompletionProvider.spec.ts (35 tests | 2 failed)
      × should complete every section object in theme-mode snippets and blocks (#944)
+       × completes nested predictive_search properties in a doc-tagged theme snippet
 
-⎯⎯⎯⎯⎯⎯⎯ Failed Tests 7 ⎯⎯⎯⎯⎯⎯⎯
+⎯⎯⎯⎯⎯⎯ Failed Tests 12 ⎯⎯⎯⎯⎯⎯⎯
 
  FAIL  |isolated| packages/theme-language-server-common/src/completions/providers/ObjectCompletionProvider.spec.ts > Module: ObjectCompletionProvider > should complete every section object in theme-mode snippets and blocks (#944)
 Error: {{ section█ }}: expected complete to match value ArrayContaining [
@@ -41,7 +46,34 @@ context:
     383|           { source, relativePath },
     384|           expect.arrayContaining([expect.objectContaining({ label: obj…
 
-⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/7]⎯
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/12]⎯
+
+ FAIL  |isolated| packages/theme-language-server-common/src/completions/providers/ObjectCompletionProvider.spec.ts > Module: ObjectCompletionProvider > section objects in snippets: nested properties and app mode (#944) > completes nested predictive_search properties in a doc-tagged theme snippet
+Error: {% doc %} @param {string} heading - The heading {% enddoc %}{{ predictive_search.resources.█ }}: expected complete to match value Array [
+  "articles",
+  "products",
+]
+context:
+[object Object]
+
+- Expected
++ Received
+
+- [
+-   "articles",
+-   "products",
+- ]
++ []
+
+ ❯ packages/theme-language-server-common/src/completions/providers/ObjectCompletionProvider.spec.ts:444:7
+    442|       const provider = makeProvider('theme');
+    443|       let source = `${doc}{{ predictive_search.resources.█ }}`;
+    444|       await expect(provider, source).to.complete({ source, relativePat…
+       |       ^
+    445|         'articles',
+    446|         'products',
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/12]⎯
 
  FAIL  |shared| packages/theme-language-server-common/src/TypeSystem.spec.ts > Module: TypeSystem > parity with UndefinedObject contextual objects (issue #944) > types every contextual object of blocks/a.liquid
 AssertionError: predictive_search in blocks/a.liquid: expected 'unknown' to deeply equal 'predictive_search'
@@ -49,15 +81,15 @@ AssertionError: predictive_search in blocks/a.liquid: expected 'unknown' to deep
 Expected: "predictive_search"
 Received: "unknown"
 
- ❯ packages/theme-language-server-common/src/TypeSystem.spec.ts:809:72
-    807|       expect(objects.length).toBeGreaterThan(0);
-    808|       for (const object of objects) {
-    809|         expect(await inferAt(object, path), `${object} in ${path}`).to…
+ ❯ packages/theme-language-server-common/src/TypeSystem.spec.ts:810:72
+    808|       expect(objects.length).toBeGreaterThan(0);
+    809|       for (const object of objects) {
+    810|         expect(await inferAt(object, path), `${object} in ${path}`).to…
        |                                                                        ^
-    810|       }
-    811|     });
+    811|       }
+    812|     });
 
-⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/7]⎯
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[3/12]⎯
 
  FAIL  |shared| packages/theme-language-server-common/src/TypeSystem.spec.ts > Module: TypeSystem > parity with UndefinedObject contextual objects (issue #944) > types every contextual object of snippets/a.liquid
 AssertionError: block in snippets/a.liquid: expected 'unknown' to deeply equal 'block'
@@ -65,15 +97,15 @@ AssertionError: block in snippets/a.liquid: expected 'unknown' to deeply equal '
 Expected: "block"
 Received: "unknown"
 
- ❯ packages/theme-language-server-common/src/TypeSystem.spec.ts:809:72
-    807|       expect(objects.length).toBeGreaterThan(0);
-    808|       for (const object of objects) {
-    809|         expect(await inferAt(object, path), `${object} in ${path}`).to…
+ ❯ packages/theme-language-server-common/src/TypeSystem.spec.ts:810:72
+    808|       expect(objects.length).toBeGreaterThan(0);
+    809|       for (const object of objects) {
+    810|         expect(await inferAt(object, path), `${object} in ${path}`).to…
        |                                                                        ^
-    810|       }
-    811|     });
+    811|       }
+    812|     });
 
-⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[3/7]⎯
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[4/12]⎯
 
  FAIL  |shared| packages/theme-language-server-common/src/TypeSystem.spec.ts > Module: TypeSystem > parity with UndefinedObject contextual objects (issue #944) > types predictive_search, recommendations and comment in theme-mode snippets and blocks
 AssertionError: section in snippets/predictive-search-results.liquid: expected 'unknown' to deeply equal 'section'
@@ -81,15 +113,65 @@ AssertionError: section in snippets/predictive-search-results.liquid: expected '
 Expected: "section"
 Received: "unknown"
 
- ❯ packages/theme-language-server-common/src/TypeSystem.spec.ts:822:74
-    820|           'comment',
-    821|         ]) {
-    822|           expect(await inferAt(object, path), `${object} in ${path}`).…
+ ❯ packages/theme-language-server-common/src/TypeSystem.spec.ts:823:74
+    821|           'comment',
+    822|         ]) {
+    823|           expect(await inferAt(object, path), `${object} in ${path}`).…
        |                                                                          ^
-    823|         }
-    824|       }
+    824|         }
+    825|       }
 
-⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[4/7]⎯
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[5/12]⎯
+
+ FAIL  |shared| packages/theme-language-server-common/src/TypeSystem.spec.ts > Module: TypeSystem > section objects in snippets: nested lookups and app mode (issue #944) > infers predictive_search.resources.products in a doc-tagged theme snippet
+AssertionError: expected 'untyped' to deeply equal { kind: 'array', valueType: 'product' }
+
+- Expected:
+{
+  "kind": "array",
+  "valueType": "product",
+}
+
++ Received:
+"untyped"
+
+ ❯ packages/theme-language-server-common/src/TypeSystem.spec.ts:905:74
+    903|     it('infers predictive_search.resources.products in a doc-tagged th…
+    904|       const { ast, output } = outputAt(`${docTag}{{ predictive_search.…
+    905|       expect(await themeTypes.inferType(output.markup, ast, snippet)).…
+       |                                                                          ^
+    906|         kind: 'array',
+    907|         valueType: 'product',
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[6/12]⎯
+
+ FAIL  |shared| packages/theme-language-server-common/src/TypeSystem.spec.ts > Module: TypeSystem > section objects in snippets: nested lookups and app mode (issue #944) > infers the loop variable over predictive_search.resources.products
+AssertionError: expected 'untyped' to deeply equal 'product'
+
+Expected: "product"
+Received: "untyped"
+
+ ❯ packages/theme-language-server-common/src/TypeSystem.spec.ts:916:74
+    914|         0,
+    915|       );
+    916|       expect(await themeTypes.inferType(output.markup, ast, snippet)).…
+       |                                                                          ^
+    917|       const second = outputAt(
+    918|         `${docTag}{% for p in predictive_search.resources.products %}{…
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[7/12]⎯
+
+ FAIL  |shared| packages/theme-language-server-common/src/TypeSystem.spec.ts > Module: TypeSystem > section objects in snippets: nested lookups and app mode (issue #944) > does not type predictive_search or comment in app-mode snippets
+AssertionError: {{ predictive_search }}: expected 'unknown' to not deeply equal 'unknown'
+ ❯ packages/theme-language-server-common/src/TypeSystem.spec.ts:937:88
+    935|         expect(await appTypes.inferType(output.markup, ast, snippet), …
+    936|         // Same source in theme mode is typed, so the app-mode result …
+    937|         expect(await themeTypes.inferType(output.markup, ast, snippet)…
+       |                                                                                        ^
+    938|           expected,
+    939|         );
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[8/12]⎯
 
  FAIL  |shared| packages/theme-check-common/src/checks/undefined-object/index.spec.ts > Module: UndefinedObject > should allow predictive_search in snippets with doc tags when in theme mode (issue #944)
 AssertionError: expected [ Array(1) ] to deeply equal []
@@ -110,7 +192,7 @@ AssertionError: expected [ Array(1) ] to deeply equal []
     382|   });
     383|
 
-⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[5/7]⎯
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[9/12]⎯
 
  FAIL  |shared| packages/theme-check-common/src/checks/undefined-object/index.spec.ts > Module: UndefinedObject > should allow every section object in theme-mode snippets and theme blocks (issue #944)
 AssertionError: Expected no offense for 'predictive_search' in snippets/my-snippet.liquid: expected [ { type: 'LiquidHtml', …(8) } ] to have a length of +0 but got 1
@@ -121,15 +203,36 @@ AssertionError: Expected no offense for 'predictive_search' in snippets/my-snipp
 - 0
 + 1
 
- ❯ packages/theme-check-common/src/checks/undefined-object/index.spec.ts:404:76
-    402|         const sourceCode = `{% doc %} @param {string} x - x {% enddoc …
-    403|         const offenses = await runLiquidCheck(UndefinedObject, sourceC…
-    404|         expect(offenses, `Expected no offense for '${object}' in ${fil…
+ ❯ packages/theme-check-common/src/checks/undefined-object/index.spec.ts:401:76
+    399|         const sourceCode = `{% doc %} @param {string} x - x {% enddoc …
+    400|         const offenses = await runLiquidCheck(UndefinedObject, sourceC…
+    401|         expect(offenses, `Expected no offense for '${object}' in ${fil…
        |                                                                            ^
-    405|       }
-    406|     }
+    402|       }
+    403|     }
 
-⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[6/7]⎯
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[10/12]⎯
+
+ FAIL  |shared| packages/theme-check-common/src/checks/undefined-object/index.spec.ts > Module: UndefinedObject > accepts section objects in a snippet even when only a layout renders it (known limitation)
+AssertionError: expected [ Array(1) ] to deeply equal []
+
+- Expected
++ Received
+
+- []
++ [
++   "snippets/search-results.liquid: Unknown object 'predictive_search' used.",
++ ]
+
+ ❯ packages/theme-check-common/src/checks/undefined-object/index.spec.ts:424:90
+    422|     };
+    423|     const offenses = await check(theme, [UndefinedObject]);
+    424|     expect(offenses.map((o) => `${o.uri.split('/').slice(-2).join('/')…
+       |                                                                                          ^
+    425|       [],
+    426|     );
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[11/12]⎯
 
  FAIL  |shared| packages/theme-check-common/src/checks/undefined-object/index.spec.ts > Module: UndefinedObject > should allow comment in a theme snippet that posts a new_comment form
 AssertionError: expected [ 'Unknown object \'comment\' used.' ] to deeply equal []
@@ -142,17 +245,17 @@ AssertionError: expected [ 'Unknown object \'comment\' used.' ] to deeply equal 
 +   "Unknown object 'comment' used.",
 + ]
 
- ❯ packages/theme-check-common/src/checks/undefined-object/index.spec.ts:424:44
-    422|       'snippets/blog-comment-form.liquid',
-    423|     );
-    424|     expect(offenses.map((o) => o.message)).toEqual([]);
+ ❯ packages/theme-check-common/src/checks/undefined-object/index.spec.ts:444:44
+    442|       'snippets/blog-comment-form.liquid',
+    443|     );
+    444|     expect(offenses.map((o) => o.message)).toEqual([]);
        |                                            ^
-    425|   });
-    426|
+    445|   });
+    446|
 
-⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[7/7]⎯
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[12/12]⎯
 
 
  Test Files  3 failed (3)
-      Tests  7 failed | 182 passed | 1 skipped (190)
+      Tests  12 failed | 184 passed | 1 skipped (197)
 
