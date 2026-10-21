@@ -1,0 +1,82 @@
+
+ RUN  v4.1.11 .
+
+ ❯ |shared| packages/theme-language-server-common/src/TypeSystem.spec.ts (102 tests | 1 failed | 1 skipped) 106ms
+     × should type the contextual objects UndefinedObject allows in theme-mode snippets (issue #944) 7ms
+ ❯ |shared| packages/theme-check-common/src/checks/undefined-object/index.spec.ts (48 tests | 1 failed) 52ms
+     × should allow predictive_search in snippets with doc tags when in theme mode (issue #944) 4ms
+ ❯ |isolated| packages/theme-language-server-common/src/completions/providers/ObjectCompletionProvider.spec.ts (33 tests | 1 failed) 117ms
+     × should complete the contextual objects UndefinedObject allows in theme-mode snippets (#944) 8ms
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 3 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  |isolated| packages/theme-language-server-common/src/completions/providers/ObjectCompletionProvider.spec.ts > Module: ObjectCompletionProvider > should complete the contextual objects UndefinedObject allows in theme-mode snippets (#944)
+Error: {{ section█ }}: expected complete to match value ArrayContaining [
+  ObjectContaining {
+    "label": "section",
+  },
+]
+context:
+[object Object]
+
+- Expected
++ Received
+
+- ArrayContaining [
+-   ObjectContaining {
+-     "label": "section",
+-   },
+- ]
++ []
+
+ ❯ packages/theme-language-server-common/src/completions/providers/ObjectCompletionProvider.spec.ts:381:7
+    379|     for (const object of ['section', 'block', 'predictive_search']) {
+    380|       const source = `{{ ${object}█ }}`;
+    381|       await expect(provider, source).to.complete(
+       |       ^
+    382|         { source, relativePath: 'snippets/my-snippet.liquid' },
+    383|         expect.arrayContaining([expect.objectContaining({ label: objec…
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/3]⎯
+
+ FAIL  |shared| packages/theme-language-server-common/src/TypeSystem.spec.ts > Module: TypeSystem > should type the contextual objects UndefinedObject allows in theme-mode snippets (issue #944)
+AssertionError: section: expected 'unknown' to deeply equal 'section'
+
+Expected: "section"
+Received: "unknown"
+
+ ❯ packages/theme-language-server-common/src/TypeSystem.spec.ts:793:39
+    791|       assert(isLiquidVariableOutput(variableOutput));
+    792|       const inferredType = await typeSystem.inferType(variableOutput.m…
+    793|       expect(inferredType, object).to.eql(object);
+       |                                       ^
+    794|     }
+    795|     // Objects that UndefinedObject still reports in theme-mode snippe…
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/3]⎯
+
+ FAIL  |shared| packages/theme-check-common/src/checks/undefined-object/index.spec.ts > Module: UndefinedObject > should allow predictive_search in snippets with doc tags when in theme mode (issue #944)
+AssertionError: expected [ Array(1) ] to deeply equal []
+
+- Expected
++ Received
+
+- []
++ [
++   "Unknown object 'predictive_search' used.",
++ ]
+
+ ❯ packages/theme-check-common/src/checks/undefined-object/index.spec.ts:377:44
+    375|       'snippets/predictive-search-results.liquid',
+    376|     );
+    377|     expect(offenses.map((o) => o.message)).toEqual([]);
+       |                                            ^
+    378|   });
+    379|
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[3/3]⎯
+
+
+ Test Files  3 failed (3)
+      Tests  3 failed | 179 passed | 1 skipped (183)
+      

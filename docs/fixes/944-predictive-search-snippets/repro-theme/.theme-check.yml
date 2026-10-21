@@ -1,0 +1,4 @@
+extends: nothing
+UndefinedObject:
+  enabled: true
+  severity: 1

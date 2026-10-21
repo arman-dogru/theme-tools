@@ -1,0 +1,11 @@
+{% doc %}
+  Renders the product results of a predictive search.
+
+  @param {string} heading - The results heading
+{% enddoc %}
+<div id="PredictiveSearch-{{ section.id }}">
+  <h2>{{ heading }}: {{ predictive_search.terms }}</h2>
+  {%- for product in predictive_search.resources.products -%}
+    <a href="{{ product.url }}">{{ product.title }}</a>
+  {%- endfor -%}
+</div>

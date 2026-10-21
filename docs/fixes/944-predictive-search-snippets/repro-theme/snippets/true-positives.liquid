@@ -1,0 +1,12 @@
+{% doc %}
+  These stay reported: render does not pass tag-scoped variables
+  (form, paginate) into a snippet, and upstream keeps recommendations
+  flagged in theme-mode snippets.
+
+  @param {string} label - A label
+{% enddoc %}
+{{ label }}
+{{ form.errors }}
+{{ paginate.pages }}
+{{ recommendations.products_count }}
+{{ undefined_thing }}

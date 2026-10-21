@@ -1,0 +1,9 @@
+{%- if predictive_search.performed -%}
+  {% render 'predictive-search-results', heading: 'Products' %}
+{%- endif -%}
+
+{% schema %}
+{
+  "name": "Predictive search"
+}
+{% endschema %}
