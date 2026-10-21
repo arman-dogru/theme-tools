@@ -1,0 +1,10 @@
+C1	theme	snippets/s.liquid	{{ pre█ }}	(none)
+C2	theme	snippets/s.liquid	{{ predictive_search.█ }}	(none)
+C3	theme	snippets/s.liquid	{{ recommendations.█ }}	(none)
+C4	theme	snippets/s.liquid	{{ section.█ }}	(none)
+C5	theme	snippets/s.liquid	{% for p in predictive_search.resources.products %}{{ p.ti█ }}{% endfor %}	(none)
+C6	theme	blocks/b.liquid	{{ predictive_search.█ }}	(none)
+H1	theme	snippets/s.liquid	{{ predictive_sea█rch }}	(null)
+H2	theme	blocks/b.liquid	{{ recommenda█tions }}	### recommendations: `recommendations`
+K1	theme	templates/search.liquid	{{ predictive_search.█ }}	(none)
+K2	app	snippets/s.liquid	{{ pre█ }}	(none)

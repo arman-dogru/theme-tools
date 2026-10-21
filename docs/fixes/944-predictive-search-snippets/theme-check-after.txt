@@ -1,6 +1,6 @@
 layout/theme.liquid:6:8 [UndefinedObject] Unknown object 'predictive_search' used.
-snippets/true-positives.liquid:10:4 [UndefinedObject] Unknown object 'paginate' used.
-snippets/true-positives.liquid:11:4 [UndefinedObject] Unknown object 'recommendations' used.
-snippets/true-positives.liquid:12:4 [UndefinedObject] Unknown object 'undefined_thing' used.
-snippets/true-positives.liquid:9:4 [UndefinedObject] Unknown object 'form' used.
+snippets/true-positives.liquid:8:4 [UndefinedObject] Unknown object 'form' used.
+snippets/true-positives.liquid:9:4 [UndefinedObject] Unknown object 'paginate' used.
+snippets/true-positives.liquid:10:4 [UndefinedObject] Unknown object 'undefined_thing' used.
+templates/search.liquid:2:4 [UndefinedObject] Unknown object 'recommendations' used.
 5 offense(s)

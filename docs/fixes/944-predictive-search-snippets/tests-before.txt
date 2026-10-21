@@ -1,16 +1,19 @@
 
  RUN  v4.1.11 .
 
- ❯ |shared| packages/theme-language-server-common/src/TypeSystem.spec.ts (102 tests | 1 failed | 1 skipped)
-     × should type the contextual objects UndefinedObject allows in theme-mode snippets (issue #944)
- ❯ |shared| packages/theme-check-common/src/checks/undefined-object/index.spec.ts (48 tests | 1 failed)
+ ❯ |shared| packages/theme-language-server-common/src/TypeSystem.spec.ts (106 tests | 3 failed | 1 skipped)
+       × types every contextual object of blocks/a.liquid
+       × types every contextual object of snippets/a.liquid
+       × types predictive_search, recommendations and comment in theme-mode snippets and blocks
+ ❯ |shared| packages/theme-check-common/src/checks/undefined-object/index.spec.ts (49 tests | 2 failed)
      × should allow predictive_search in snippets with doc tags when in theme mode (issue #944)
+     × should allow every section object in theme-mode snippets and theme blocks (issue #944)
  ❯ |isolated| packages/theme-language-server-common/src/completions/providers/ObjectCompletionProvider.spec.ts (33 tests | 1 failed)
-     × should complete the contextual objects UndefinedObject allows in theme-mode snippets (#944)
+     × should complete every section object in theme-mode snippets and blocks (#944)
 
-⎯⎯⎯⎯⎯⎯⎯ Failed Tests 3 ⎯⎯⎯⎯⎯⎯⎯
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 6 ⎯⎯⎯⎯⎯⎯⎯
 
- FAIL  |isolated| packages/theme-language-server-common/src/completions/providers/ObjectCompletionProvider.spec.ts > Module: ObjectCompletionProvider > should complete the contextual objects UndefinedObject allows in theme-mode snippets (#944)
+ FAIL  |isolated| packages/theme-language-server-common/src/completions/providers/ObjectCompletionProvider.spec.ts > Module: ObjectCompletionProvider > should complete every section object in theme-mode snippets and blocks (#944)
 Error: {{ section█ }}: expected complete to match value ArrayContaining [
   ObjectContaining {
     "label": "section",
@@ -29,31 +32,63 @@ context:
 - ]
 + []
 
- ❯ packages/theme-language-server-common/src/completions/providers/ObjectCompletionProvider.spec.ts:381:7
-    379|     for (const object of ['section', 'block', 'predictive_search']) {
-    380|       const source = `{{ ${object}█ }}`;
-    381|       await expect(provider, source).to.complete(
-       |       ^
-    382|         { source, relativePath: 'snippets/my-snippet.liquid' },
-    383|         expect.arrayContaining([expect.objectContaining({ label: objec…
+ ❯ packages/theme-language-server-common/src/completions/providers/ObjectCompletionProvider.spec.ts:382:9
+    380|       for (const object of ['section', 'block', 'predictive_search', '…
+    381|         const source = `{{ ${object}█ }}`;
+    382|         await expect(provider, source).to.complete(
+       |         ^
+    383|           { source, relativePath },
+    384|           expect.arrayContaining([expect.objectContaining({ label: obj…
 
-⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/3]⎯
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/6]⎯
 
- FAIL  |shared| packages/theme-language-server-common/src/TypeSystem.spec.ts > Module: TypeSystem > should type the contextual objects UndefinedObject allows in theme-mode snippets (issue #944)
-AssertionError: section: expected 'unknown' to deeply equal 'section'
+ FAIL  |shared| packages/theme-language-server-common/src/TypeSystem.spec.ts > Module: TypeSystem > parity with UndefinedObject contextual objects (issue #944) > types every contextual object of blocks/a.liquid
+AssertionError: predictive_search in blocks/a.liquid: expected 'unknown' to deeply equal 'predictive_search'
+
+Expected: "predictive_search"
+Received: "unknown"
+
+ ❯ packages/theme-language-server-common/src/TypeSystem.spec.ts:809:72
+    807|       expect(objects.length).toBeGreaterThan(0);
+    808|       for (const object of objects) {
+    809|         expect(await inferAt(object, path), `${object} in ${path}`).to…
+       |                                                                        ^
+    810|       }
+    811|     });
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/6]⎯
+
+ FAIL  |shared| packages/theme-language-server-common/src/TypeSystem.spec.ts > Module: TypeSystem > parity with UndefinedObject contextual objects (issue #944) > types every contextual object of snippets/a.liquid
+AssertionError: block in snippets/a.liquid: expected 'unknown' to deeply equal 'block'
+
+Expected: "block"
+Received: "unknown"
+
+ ❯ packages/theme-language-server-common/src/TypeSystem.spec.ts:809:72
+    807|       expect(objects.length).toBeGreaterThan(0);
+    808|       for (const object of objects) {
+    809|         expect(await inferAt(object, path), `${object} in ${path}`).to…
+       |                                                                        ^
+    810|       }
+    811|     });
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[3/6]⎯
+
+ FAIL  |shared| packages/theme-language-server-common/src/TypeSystem.spec.ts > Module: TypeSystem > parity with UndefinedObject contextual objects (issue #944) > types predictive_search, recommendations and comment in theme-mode snippets and blocks
+AssertionError: section in snippets/predictive-search-results.liquid: expected 'unknown' to deeply equal 'section'
 
 Expected: "section"
 Received: "unknown"
 
- ❯ packages/theme-language-server-common/src/TypeSystem.spec.ts:793:39
-    791|       assert(isLiquidVariableOutput(variableOutput));
-    792|       const inferredType = await typeSystem.inferType(variableOutput.m…
-    793|       expect(inferredType, object).to.eql(object);
-       |                                       ^
-    794|     }
-    795|     // Objects that UndefinedObject still reports in theme-mode snippe…
+ ❯ packages/theme-language-server-common/src/TypeSystem.spec.ts:822:74
+    820|           'comment',
+    821|         ]) {
+    822|           expect(await inferAt(object, path), `${object} in ${path}`).…
+       |                                                                          ^
+    823|         }
+    824|       }
 
-⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/3]⎯
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[4/6]⎯
 
  FAIL  |shared| packages/theme-check-common/src/checks/undefined-object/index.spec.ts > Module: UndefinedObject > should allow predictive_search in snippets with doc tags when in theme mode (issue #944)
 AssertionError: expected [ Array(1) ] to deeply equal []
@@ -66,17 +101,36 @@ AssertionError: expected [ Array(1) ] to deeply equal []
 +   "Unknown object 'predictive_search' used.",
 + ]
 
- ❯ packages/theme-check-common/src/checks/undefined-object/index.spec.ts:377:44
-    375|       'snippets/predictive-search-results.liquid',
-    376|     );
-    377|     expect(offenses.map((o) => o.message)).toEqual([]);
+ ❯ packages/theme-check-common/src/checks/undefined-object/index.spec.ts:381:44
+    379|       'snippets/predictive-search-results.liquid',
+    380|     );
+    381|     expect(offenses.map((o) => o.message)).toEqual([]);
        |                                            ^
-    378|   });
-    379|
+    382|   });
+    383|
 
-⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[3/3]⎯
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[5/6]⎯
+
+ FAIL  |shared| packages/theme-check-common/src/checks/undefined-object/index.spec.ts > Module: UndefinedObject > should allow every section object in theme-mode snippets and theme blocks (issue #944)
+AssertionError: Expected no offense for 'predictive_search' in snippets/my-snippet.liquid: expected [ { type: 'LiquidHtml', …(8) } ] to have a length of +0 but got 1
+
+- Expected
++ Received
+
+- 0
++ 1
+
+ ❯ packages/theme-check-common/src/checks/undefined-object/index.spec.ts:404:76
+    402|         const sourceCode = `{% doc %} @param {string} x - x {% enddoc …
+    403|         const offenses = await runLiquidCheck(UndefinedObject, sourceC…
+    404|         expect(offenses, `Expected no offense for '${object}' in ${fil…
+       |                                                                            ^
+    405|       }
+    406|     }
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[6/6]⎯
 
 
  Test Files  3 failed (3)
-      Tests  3 failed | 179 passed | 1 skipped (183)
+      Tests  6 failed | 181 passed | 1 skipped (188)
 
