@@ -5,13 +5,14 @@
        × types every contextual object of blocks/a.liquid
        × types every contextual object of snippets/a.liquid
        × types predictive_search, recommendations and comment in theme-mode snippets and blocks
- ❯ |shared| packages/theme-check-common/src/checks/undefined-object/index.spec.ts (49 tests | 2 failed)
+ ❯ |shared| packages/theme-check-common/src/checks/undefined-object/index.spec.ts (51 tests | 3 failed)
      × should allow predictive_search in snippets with doc tags when in theme mode (issue #944)
      × should allow every section object in theme-mode snippets and theme blocks (issue #944)
+     × should allow comment in a theme snippet that posts a new_comment form
  ❯ |isolated| packages/theme-language-server-common/src/completions/providers/ObjectCompletionProvider.spec.ts (33 tests | 1 failed)
      × should complete every section object in theme-mode snippets and blocks (#944)
 
-⎯⎯⎯⎯⎯⎯⎯ Failed Tests 6 ⎯⎯⎯⎯⎯⎯⎯
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 7 ⎯⎯⎯⎯⎯⎯⎯
 
  FAIL  |isolated| packages/theme-language-server-common/src/completions/providers/ObjectCompletionProvider.spec.ts > Module: ObjectCompletionProvider > should complete every section object in theme-mode snippets and blocks (#944)
 Error: {{ section█ }}: expected complete to match value ArrayContaining [
@@ -40,7 +41,7 @@ context:
     383|           { source, relativePath },
     384|           expect.arrayContaining([expect.objectContaining({ label: obj…
 
-⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/6]⎯
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/7]⎯
 
  FAIL  |shared| packages/theme-language-server-common/src/TypeSystem.spec.ts > Module: TypeSystem > parity with UndefinedObject contextual objects (issue #944) > types every contextual object of blocks/a.liquid
 AssertionError: predictive_search in blocks/a.liquid: expected 'unknown' to deeply equal 'predictive_search'
@@ -56,7 +57,7 @@ Received: "unknown"
     810|       }
     811|     });
 
-⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/6]⎯
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/7]⎯
 
  FAIL  |shared| packages/theme-language-server-common/src/TypeSystem.spec.ts > Module: TypeSystem > parity with UndefinedObject contextual objects (issue #944) > types every contextual object of snippets/a.liquid
 AssertionError: block in snippets/a.liquid: expected 'unknown' to deeply equal 'block'
@@ -72,7 +73,7 @@ Received: "unknown"
     810|       }
     811|     });
 
-⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[3/6]⎯
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[3/7]⎯
 
  FAIL  |shared| packages/theme-language-server-common/src/TypeSystem.spec.ts > Module: TypeSystem > parity with UndefinedObject contextual objects (issue #944) > types predictive_search, recommendations and comment in theme-mode snippets and blocks
 AssertionError: section in snippets/predictive-search-results.liquid: expected 'unknown' to deeply equal 'section'
@@ -88,7 +89,7 @@ Received: "unknown"
     823|         }
     824|       }
 
-⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[4/6]⎯
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[4/7]⎯
 
  FAIL  |shared| packages/theme-check-common/src/checks/undefined-object/index.spec.ts > Module: UndefinedObject > should allow predictive_search in snippets with doc tags when in theme mode (issue #944)
 AssertionError: expected [ Array(1) ] to deeply equal []
@@ -109,7 +110,7 @@ AssertionError: expected [ Array(1) ] to deeply equal []
     382|   });
     383|
 
-⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[5/6]⎯
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[5/7]⎯
 
  FAIL  |shared| packages/theme-check-common/src/checks/undefined-object/index.spec.ts > Module: UndefinedObject > should allow every section object in theme-mode snippets and theme blocks (issue #944)
 AssertionError: Expected no offense for 'predictive_search' in snippets/my-snippet.liquid: expected [ { type: 'LiquidHtml', …(8) } ] to have a length of +0 but got 1
@@ -128,9 +129,30 @@ AssertionError: Expected no offense for 'predictive_search' in snippets/my-snipp
     405|       }
     406|     }
 
-⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[6/6]⎯
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[6/7]⎯
+
+ FAIL  |shared| packages/theme-check-common/src/checks/undefined-object/index.spec.ts > Module: UndefinedObject > should allow comment in a theme snippet that posts a new_comment form
+AssertionError: expected [ 'Unknown object \'comment\' used.' ] to deeply equal []
+
+- Expected
++ Received
+
+- []
++ [
++   "Unknown object 'comment' used.",
++ ]
+
+ ❯ packages/theme-check-common/src/checks/undefined-object/index.spec.ts:424:44
+    422|       'snippets/blog-comment-form.liquid',
+    423|     );
+    424|     expect(offenses.map((o) => o.message)).toEqual([]);
+       |                                            ^
+    425|   });
+    426|
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[7/7]⎯
 
 
  Test Files  3 failed (3)
-      Tests  6 failed | 181 passed | 1 skipped (188)
+      Tests  7 failed | 182 passed | 1 skipped (190)
 
