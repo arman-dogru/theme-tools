@@ -406,6 +406,30 @@ describe('Module: UndefinedObject', () => {
     }
   });
 
+  it('should allow comment in a theme snippet that posts a new_comment form', async () => {
+    // Once a new_comment form is posted, `comment` is globally available, so a
+    // snippet that renders the comment form can read it (e.g. Horizon's
+    // snippets/blog-comment-form.liquid).
+    const sourceCode = `
+      {% doc %} @param {object} article - The article {% enddoc %}
+      {% form 'new_comment', article %}
+        {% if comment.status == 'unapproved' %}pending{% endif %}
+      {% endform %}
+    `;
+    const offenses = await runLiquidCheck(
+      UndefinedObject,
+      sourceCode,
+      'snippets/blog-comment-form.liquid',
+    );
+    expect(offenses.map((o) => o.message)).toEqual([]);
+  });
+
+  it('should export frozen contextual-object lists', () => {
+    for (const list of [SECTION_CONTEXTUAL_OBJECTS, THEME_BLOCK_AND_SNIPPET_CONTEXTUAL_OBJECTS]) {
+      expect(Object.isFrozen(list)).toBe(true);
+    }
+  });
+
   it('should keep the app-mode block and snippet objects unchanged', async () => {
     for (const file of ['snippets/my-snippet.liquid', 'blocks/my-block.liquid']) {
       for (const object of ['predictive_search', 'comment']) {
