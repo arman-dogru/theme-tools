@@ -14,7 +14,9 @@ matplotlib.use("Agg")
 import matplotlib.pyplot as plt  # noqa: E402
 
 here = pathlib.Path(__file__).parent
-RED, GREEN = "#b22222", "#1f6f2f"
+RED, GREEN, AMBER = "#b22222", "#1f6f2f", "#b26b00"
+# Offenses that disappear only because the caller is unknown (documented limitation).
+KNOWN_LIMITATION = ("snippets/layout-rendered-search.liquid",)
 
 
 def offenses(name):
@@ -33,6 +35,8 @@ def render_offenses():
         y = 1 - (i + 1) / (len(rows) + 1)
         if line in before and line in after:
             status, color = "still reported (true positive)", GREEN
+        elif line in before and line.startswith(KNOWN_LIMITATION):
+            status, color = "now accepted (known limitation)", AMBER
         elif line in before:
             status, color = "fixed (false positive)", RED
         else:
@@ -40,7 +44,8 @@ def render_offenses():
         ax.text(0.0, y, line.replace(" [UndefinedObject]", ""), family="monospace", fontsize=9,
                 color="black" if color == GREEN else color)
         ax.text(0.80, y, status, fontsize=9, color=color, weight="bold")
-    ax.text(0.0, 0.0, f"before: {len(before)} offenses   after: {len(after)} offenses",
+    ax.text(0.0, 0.0, f"before: {len(before)} offenses   after: {len(after)} offenses   "
+            "(amber: snippet rendered only from a layout; the path can't tell the caller)",
             fontsize=10, weight="bold")
     fig.savefig(here / "before-after.png", dpi=130, bbox_inches="tight")
 

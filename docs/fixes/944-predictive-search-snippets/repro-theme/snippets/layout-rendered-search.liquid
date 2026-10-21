@@ -1,0 +1,9 @@
+{% doc %}
+  KNOWN LIMITATION (negative caller context): this snippet is only rendered
+  from layout/theme.liquid, where predictive_search is not defined. The check
+  can't see the caller from the file path, so after the fix it is accepted,
+  the same broad allowance upstream already makes for section/block in snippets.
+
+  @param {string} [heading] - Optional heading
+{% enddoc %}
+<p>{{ heading }} {{ predictive_search.terms }}</p>
