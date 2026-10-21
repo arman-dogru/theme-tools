@@ -8,7 +8,7 @@ part of the upstream-ready branch).
 | --- | --- |
 | `repro-theme/` | Minimal theme. `.theme-check.yml` enables only `UndefinedObject`. |
 | `offenses.mjs` | Runs the built `theme-check-node` on a theme, one line per offense, sorted by file, line, column. |
-| `ls-capture.mjs` | Drives the built language server's `CompletionsProvider` / `HoverProvider` with the real Shopify docset on 10 probes (8 targets, 2 controls). |
+| `ls-capture.mjs` | Drives the built language server's `CompletionsProvider` / `HoverProvider` with the docset bundled in `packages/theme-check-docs-updater/data` (written by `pnpm build`; no cache, no network) on 12 probes: C*/H* targets, K1-K3 controls. |
 | `capture.sh` | Refuses a dirty tree; checks out base `ee5ab68`'s check and `TypeSystem` sources (restored by a trap), builds, captures; rebuilds the branch, captures; renders the PNGs. |
 | `theme-check-{before,after}.txt` | `offenses.mjs` on base and branch. |
 | `ls-{before,after}.tsv` | `ls-capture.mjs` on base and branch. |
