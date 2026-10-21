@@ -375,8 +375,18 @@ describe('Module: ObjectCompletionProvider', async () => {
     }
   });
 
-  it('should not complete block-level contextual variables in snippets when in theme mode', async () => {
-    const source = `{{ section█ }}`;
+  it('should complete the contextual objects UndefinedObject allows in theme-mode snippets (#944)', async () => {
+    for (const object of ['section', 'block', 'predictive_search']) {
+      const source = `{{ ${object}█ }}`;
+      await expect(provider, source).to.complete(
+        { source, relativePath: 'snippets/my-snippet.liquid' },
+        expect.arrayContaining([expect.objectContaining({ label: object })]),
+      );
+    }
+  });
+
+  it('should not complete block-only contextual variables in snippets when in theme mode', async () => {
+    const source = `{{ recommendations█ }}`;
     await expect(provider, source).to.complete(
       { source, relativePath: 'snippets/my-snippet.liquid' },
       [],

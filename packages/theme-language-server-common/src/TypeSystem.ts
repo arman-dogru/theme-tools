@@ -355,6 +355,7 @@ const LAYOUT_FILE_REGEX = /layout[\/\\]checkout\.liquid$/;
 const THEME_BLOCK_FILE_REGEX = /(?:^|[\/\\])blocks[\/\\][^.\\\/]*\.liquid$/;
 
 const BLOCK_CONTEXTUAL_ENTRIES = ['app', 'section', 'recommendations', 'block'];
+const THEME_SNIPPET_CONTEXTUAL_ENTRIES = ['app', 'section', 'block', 'predictive_search'];
 
 /** Only files directly inside a directory named exactly `blocks` are theme block files. */
 function isThemeBlockFile(uri: string): boolean {
@@ -390,7 +391,10 @@ function getContextualEntries(uri: string, mode: Mode = 'theme'): string[] {
     // In a theme app extension, snippets can only be rendered from blocks,
     // so they have access to the same contextual objects as blocks.
     if (mode === 'app') return BLOCK_CONTEXTUAL_ENTRIES;
-    return ['app'];
+    // Same objects UndefinedObject allows in theme-mode snippets: a snippet
+    // rendered from a section or block can read `section` and `block`, and one
+    // rendered from the predictive search section can read `predictive_search`.
+    return THEME_SNIPPET_CONTEXTUAL_ENTRIES;
   }
   return [];
 }

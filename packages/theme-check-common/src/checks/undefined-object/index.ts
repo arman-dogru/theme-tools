@@ -219,6 +219,7 @@ async function themeBlockParameterNames(
 }
 
 const BLOCK_CONTEXTUAL_OBJECTS = ['app', 'section', 'recommendations', 'block'];
+const THEME_SNIPPET_CONTEXTUAL_OBJECTS = ['app', 'section', 'block', 'predictive_search'];
 
 function getContextualObjects(relativePath: string, mode: Mode = 'theme'): string[] {
   if (relativePath.startsWith('layout/checkout.liquid')) {
@@ -252,8 +253,12 @@ function getContextualObjects(relativePath: string, mode: Mode = 'theme'): strin
     if (mode === 'app') return BLOCK_CONTEXTUAL_OBJECTS;
     // In a theme, a snippet is commonly rendered from a section or block, which
     // pass `section` and `block` down into scope, so they should not be reported
-    // as undefined here.
-    return ['app', 'section', 'block'];
+    // as undefined here. A snippet rendered from the predictive search section
+    // can also read that section's `predictive_search` object (#944).
+    //
+    // Keep in sync with getContextualEntries in theme-language-server-common's
+    // TypeSystem.ts.
+    return THEME_SNIPPET_CONTEXTUAL_OBJECTS;
   }
 
   return [];

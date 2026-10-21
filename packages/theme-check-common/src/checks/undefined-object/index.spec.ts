@@ -380,9 +380,10 @@ describe('Module: UndefinedObject', () => {
   it('should still report predictive_search outside sections and snippets', async () => {
     for (const file of ['templates/index.liquid', 'layout/theme.liquid', 'file.liquid']) {
       const offenses = await runLiquidCheck(UndefinedObject, `{{ predictive_search }}`, file);
-      expect(offenses.map((o) => o.message), file).toEqual([
-        "Unknown object 'predictive_search' used.",
-      ]);
+      expect(
+        offenses.map((o) => o.message),
+        file,
+      ).toEqual(["Unknown object 'predictive_search' used."]);
     }
   });
 
