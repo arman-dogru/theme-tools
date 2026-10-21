@@ -781,6 +781,24 @@ describe('Module: TypeSystem', () => {
     }
   });
 
+  it('should type the contextual objects UndefinedObject allows in theme-mode snippets (issue #944)', async () => {
+    const snippet = pathUtils.normalize(
+      URI.from({ scheme: 'file', path: 'snippets/predictive-search-results.liquid' }),
+    );
+    for (const object of ['section', 'block', 'predictive_search', 'app']) {
+      const ast = toLiquidHtmlAST(`{{ ${object} }}`);
+      const variableOutput = ast.children[0];
+      assert(isLiquidVariableOutput(variableOutput));
+      const inferredType = await typeSystem.inferType(variableOutput.markup, ast, snippet);
+      expect(inferredType, object).to.eql(object);
+    }
+    // Objects that UndefinedObject still reports in theme-mode snippets stay unknown.
+    const ast = toLiquidHtmlAST(`{{ recommendations }}`);
+    const variableOutput = ast.children[0];
+    assert(isLiquidVariableOutput(variableOutput));
+    expect(await typeSystem.inferType(variableOutput.markup, ast, snippet)).to.eql('unknown');
+  });
+
   describe('LiquidDoc inferred type', () => {
     const liquidDocParamTypeToTypeMap: Record<string, InferredType> = {
       [BasicParamTypes.String]: 'string',

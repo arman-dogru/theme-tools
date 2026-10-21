@@ -356,6 +356,36 @@ describe('Module: UndefinedObject', () => {
     }
   });
 
+  it('should allow predictive_search in snippets with doc tags when in theme mode (issue #944)', async () => {
+    // A snippet rendered from the predictive search section can read that
+    // section's `predictive_search` object, just as it can read `section`.
+    const sourceCode = `
+      {% doc %}
+        @param {string} heading - The results heading
+      {% enddoc %}
+      {{ heading }}
+      {% for product in predictive_search.resources.products %}
+        {{ product.title }}
+      {% endfor %}
+      {{ section.id }}
+    `;
+    const offenses = await runLiquidCheck(
+      UndefinedObject,
+      sourceCode,
+      'snippets/predictive-search-results.liquid',
+    );
+    expect(offenses.map((o) => o.message)).toEqual([]);
+  });
+
+  it('should still report predictive_search outside sections and snippets', async () => {
+    for (const file of ['templates/index.liquid', 'layout/theme.liquid', 'file.liquid']) {
+      const offenses = await runLiquidCheck(UndefinedObject, `{{ predictive_search }}`, file);
+      expect(offenses.map((o) => o.message), file).toEqual([
+        "Unknown object 'predictive_search' used.",
+      ]);
+    }
+  });
+
   it('should still flag block-only objects in snippets when in theme mode', async () => {
     const blockOnlyObjects = ['recommendations'];
     for (const object of blockOnlyObjects) {
