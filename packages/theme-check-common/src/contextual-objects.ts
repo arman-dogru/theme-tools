@@ -1,0 +1,61 @@
+/**
+ * Liquid objects that are only defined in some file contexts. They are not
+ * global in the docset (`access.global === false`, no `access.template`), so
+ * `UndefinedObject` and the language server's `TypeSystem` both look them up
+ * here by file path. Keep the path matching in each consumer; share only the
+ * lists, so the check and the editor cannot drift apart.
+ */
+
+/** Objects a section file can read directly. */
+export const SECTION_CONTEXTUAL_OBJECTS: readonly string[] = [
+  'section',
+  'predictive_search',
+  'recommendations',
+  'comment',
+];
+
+/**
+ * Objects available in a theme app extension's app blocks and in the snippets
+ * they render (snippets in an app extension can only be rendered from blocks).
+ */
+export const APP_BLOCK_CONTEXTUAL_OBJECTS: readonly string[] = [
+  'app',
+  'section',
+  'recommendations',
+  'block',
+];
+
+/**
+ * Objects available in a theme's blocks and snippets.
+ *
+ * A theme block is rendered inside a section, and a snippet is rendered from a
+ * section or a block. Shopify's `render` docs say a rendered snippet can read
+ * "any objects that are directly accessible outside the snippet", e.g. a
+ * snippet inside a section can access `section`. So whatever a section can
+ * read (SECTION_CONTEXTUAL_OBJECTS), plus `block` and `app`, is readable here.
+ *
+ * Tag-scoped variables (`form`, `paginate`, `forloop`, ...) are not objects of
+ * the section and are not passed by `render`, so they are not in this list.
+ */
+export const THEME_BLOCK_AND_SNIPPET_CONTEXTUAL_OBJECTS: readonly string[] = [
+  'app',
+  'block',
+  ...SECTION_CONTEXTUAL_OBJECTS,
+];
+
+/** Objects only available in layout/checkout.liquid. */
+export const CHECKOUT_LAYOUT_CONTEXTUAL_OBJECTS: readonly string[] = [
+  'locale',
+  'direction',
+  'skip_to_content_link',
+  'checkout_html_classes',
+  'checkout_stylesheets',
+  'checkout_scripts',
+  'content_for_logo',
+  'breadcrumb',
+  'order_summary_toggle',
+  'content_for_order_summary',
+  'alternative_payment_methods',
+  'content_for_footer',
+  'tracking_code',
+];

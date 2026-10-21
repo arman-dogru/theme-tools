@@ -33,6 +33,10 @@ import {
   parseDocParamType,
   schemaSettingLiquidType,
   StringLiteralType,
+  APP_BLOCK_CONTEXTUAL_OBJECTS,
+  CHECKOUT_LAYOUT_CONTEXTUAL_OBJECTS,
+  SECTION_CONTEXTUAL_OBJECTS,
+  THEME_BLOCK_AND_SNIPPET_CONTEXTUAL_OBJECTS,
 } from '@shopify/theme-check-common';
 import {
   GetThemeSettingsSchemaForURI,
@@ -354,47 +358,28 @@ const LAYOUT_FILE_REGEX = /layout[\/\\]checkout\.liquid$/;
 
 const THEME_BLOCK_FILE_REGEX = /(?:^|[\/\\])blocks[\/\\][^.\\\/]*\.liquid$/;
 
-const BLOCK_CONTEXTUAL_ENTRIES = ['app', 'section', 'recommendations', 'block'];
-const THEME_SNIPPET_CONTEXTUAL_ENTRIES = ['app', 'section', 'block', 'predictive_search'];
-
 /** Only files directly inside a directory named exactly `blocks` are theme block files. */
 function isThemeBlockFile(uri: string): boolean {
   return THEME_BLOCK_FILE_REGEX.test(path.normalize(uri));
 }
 
-function getContextualEntries(uri: string, mode: Mode = 'theme'): string[] {
+/**
+ * The path-contextual objects come from theme-check-common, the same lists
+ * UndefinedObject uses, so a file the check accepts an object in is a file
+ * the editor types and completes it in.
+ */
+function getContextualEntries(uri: string, mode: Mode = 'theme'): readonly string[] {
   const normalizedUri = path.normalize(uri);
   if (LAYOUT_FILE_REGEX.test(normalizedUri)) {
-    return [
-      'locale',
-      'direction',
-      'skip_to_content_link',
-      'checkout_html_classes',
-      'checkout_stylesheets',
-      'checkout_scripts',
-      'content_for_logo',
-      'breadcrumb',
-      'order_summary_toggle',
-      'content_for_order_summary',
-      'alternative_payment_methods',
-      'content_for_footer',
-      'tracking_code',
-    ];
+    return CHECKOUT_LAYOUT_CONTEXTUAL_OBJECTS;
   }
   if (SECTION_FILE_REGEX.test(normalizedUri)) {
-    return ['section', 'predictive_search', 'recommendations', 'comment'];
+    return SECTION_CONTEXTUAL_OBJECTS;
   }
-  if (BLOCK_FILE_REGEX.test(normalizedUri)) {
-    return BLOCK_CONTEXTUAL_ENTRIES;
-  }
-  if (SNIPPET_FILE_REGEX.test(normalizedUri)) {
-    // In a theme app extension, snippets can only be rendered from blocks,
-    // so they have access to the same contextual objects as blocks.
-    if (mode === 'app') return BLOCK_CONTEXTUAL_ENTRIES;
-    // Same objects UndefinedObject allows in theme-mode snippets: a snippet
-    // rendered from a section or block can read `section` and `block`, and one
-    // rendered from the predictive search section can read `predictive_search`.
-    return THEME_SNIPPET_CONTEXTUAL_ENTRIES;
+  if (BLOCK_FILE_REGEX.test(normalizedUri) || SNIPPET_FILE_REGEX.test(normalizedUri)) {
+    return mode === 'app'
+      ? APP_BLOCK_CONTEXTUAL_OBJECTS
+      : THEME_BLOCK_AND_SNIPPET_CONTEXTUAL_OBJECTS;
   }
   return [];
 }

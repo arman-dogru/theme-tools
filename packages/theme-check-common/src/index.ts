@@ -51,6 +51,7 @@ export {
 } from './block-parameters';
 export * from './checks';
 export * from './context-utils';
+export * from './contextual-objects';
 export * from './find-root';
 export * from './fixes';
 export * from './ignore';

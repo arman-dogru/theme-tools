@@ -14,6 +14,12 @@ import {
   Position,
 } from '@shopify/liquid-html-parser';
 import { BLOCK_CONTENT_PARAMETER } from '../../block-parameters';
+import {
+  APP_BLOCK_CONTEXTUAL_OBJECTS,
+  CHECKOUT_LAYOUT_CONTEXTUAL_OBJECTS,
+  SECTION_CONTEXTUAL_OBJECTS,
+  THEME_BLOCK_AND_SNIPPET_CONTEXTUAL_OBJECTS,
+} from '../../contextual-objects';
 import * as path from '../../path';
 import { isBlock } from '../../to-schema';
 import {
@@ -218,47 +224,23 @@ async function themeBlockParameterNames(
   return [...(parameters?.keys() ?? [])];
 }
 
-const BLOCK_CONTEXTUAL_OBJECTS = ['app', 'section', 'recommendations', 'block'];
-const THEME_SNIPPET_CONTEXTUAL_OBJECTS = ['app', 'section', 'block', 'predictive_search'];
-
-function getContextualObjects(relativePath: string, mode: Mode = 'theme'): string[] {
+function getContextualObjects(relativePath: string, mode: Mode = 'theme'): readonly string[] {
   if (relativePath.startsWith('layout/checkout.liquid')) {
-    return [
-      'locale',
-      'direction',
-      'skip_to_content_link',
-      'checkout_html_classes',
-      'checkout_stylesheets',
-      'checkout_scripts',
-      'content_for_logo',
-      'breadcrumb',
-      'order_summary_toggle',
-      'content_for_order_summary',
-      'alternative_payment_methods',
-      'content_for_footer',
-      'tracking_code',
-    ];
+    return CHECKOUT_LAYOUT_CONTEXTUAL_OBJECTS;
   }
+
   if (relativePath.startsWith('sections/')) {
-    return ['section', 'predictive_search', 'recommendations', 'comment'];
+    return SECTION_CONTEXTUAL_OBJECTS;
   }
 
-  if (relativePath.startsWith('blocks/')) {
-    return BLOCK_CONTEXTUAL_OBJECTS;
-  }
-
-  if (relativePath.startsWith('snippets/')) {
-    // In a theme app extension, snippets can only be rendered from blocks,
-    // so they have access to the same contextual objects as blocks.
-    if (mode === 'app') return BLOCK_CONTEXTUAL_OBJECTS;
-    // In a theme, a snippet is commonly rendered from a section or block, which
-    // pass `section` and `block` down into scope, so they should not be reported
-    // as undefined here. A snippet rendered from the predictive search section
-    // can also read that section's `predictive_search` object (#944).
-    //
-    // Keep in sync with getContextualEntries in theme-language-server-common's
-    // TypeSystem.ts.
-    return THEME_SNIPPET_CONTEXTUAL_OBJECTS;
+  // In a theme app extension, blocks are app blocks and snippets can only be
+  // rendered from them, so both get the app block objects. In a theme, blocks
+  // and snippets are rendered from a section (or a block inside one), so they
+  // can read what the section can read (#944). See contextual-objects.ts.
+  if (relativePath.startsWith('blocks/') || relativePath.startsWith('snippets/')) {
+    return mode === 'app'
+      ? APP_BLOCK_CONTEXTUAL_OBJECTS
+      : THEME_BLOCK_AND_SNIPPET_CONTEXTUAL_OBJECTS;
   }
 
   return [];
