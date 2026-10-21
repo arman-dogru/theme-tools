@@ -2,6 +2,10 @@ import { expect, describe, it, assert } from 'vitest';
 import { UndefinedObject } from './index';
 import { runLiquidCheck, highlightedOffenses } from '../../test';
 import { Offense } from '../../types';
+import {
+  SECTION_CONTEXTUAL_OBJECTS,
+  THEME_BLOCK_AND_SNIPPET_CONTEXTUAL_OBJECTS,
+} from '../../contextual-objects';
 
 describe('Module: UndefinedObject', () => {
   it('should report an offense when object is undefined', async () => {
@@ -356,16 +360,90 @@ describe('Module: UndefinedObject', () => {
     }
   });
 
-  it('should still flag block-only objects in snippets when in theme mode', async () => {
-    const blockOnlyObjects = ['recommendations'];
-    for (const object of blockOnlyObjects) {
-      const sourceCode = `{% doc %} @param {string} x - x {% enddoc %}{{ ${object} }}`;
-      const offenses = await runLiquidCheck(
-        UndefinedObject,
-        sourceCode,
-        'snippets/my-snippet.liquid',
-      );
-      expect(offenses, `Expected offense for '${object}' in theme mode snippet`).toHaveLength(1);
+  it('should allow predictive_search in snippets with doc tags when in theme mode (issue #944)', async () => {
+    // A snippet rendered from the predictive search section can read that
+    // section's `predictive_search` object, just as it can read `section`.
+    const sourceCode = `
+      {% doc %}
+        @param {string} heading - The results heading
+      {% enddoc %}
+      {{ heading }}
+      {% for product in predictive_search.resources.products %}
+        {{ product.title }}
+      {% endfor %}
+      {{ section.id }}
+    `;
+    const offenses = await runLiquidCheck(
+      UndefinedObject,
+      sourceCode,
+      'snippets/predictive-search-results.liquid',
+    );
+    expect(offenses.map((o) => o.message)).toEqual([]);
+  });
+
+  it('should still report predictive_search outside sections, blocks and snippets', async () => {
+    for (const file of ['templates/index.liquid', 'layout/theme.liquid', 'file.liquid']) {
+      const offenses = await runLiquidCheck(UndefinedObject, `{{ predictive_search }}`, file);
+      expect(
+        offenses.map((o) => o.message),
+        file,
+      ).toEqual(["Unknown object 'predictive_search' used."]);
+    }
+  });
+
+  it('should allow every section object in theme-mode snippets and theme blocks (issue #944)', async () => {
+    // A theme block is rendered inside a section and a snippet is rendered from
+    // a section or block, so they can read what the section can read.
+    expect(THEME_BLOCK_AND_SNIPPET_CONTEXTUAL_OBJECTS).toEqual(
+      expect.arrayContaining([...SECTION_CONTEXTUAL_OBJECTS]),
+    );
+    for (const object of SECTION_CONTEXTUAL_OBJECTS) {
+      for (const file of ['snippets/my-snippet.liquid', 'blocks/my-block.liquid']) {
+        const sourceCode = `{% doc %} @param {string} x - x {% enddoc %}{{ ${object} }}`;
+        const offenses = await runLiquidCheck(UndefinedObject, sourceCode, file);
+        expect(offenses, `Expected no offense for '${object}' in ${file}`).toHaveLength(0);
+      }
+    }
+  });
+
+  it('should allow comment in a theme snippet that posts a new_comment form', async () => {
+    // Once a new_comment form is posted, `comment` is globally available, so a
+    // snippet that renders the comment form can read it (e.g. Horizon's
+    // snippets/blog-comment-form.liquid).
+    const sourceCode = `
+      {% doc %} @param {object} article - The article {% enddoc %}
+      {% form 'new_comment', article %}
+        {% if comment.status == 'unapproved' %}pending{% endif %}
+      {% endform %}
+    `;
+    const offenses = await runLiquidCheck(
+      UndefinedObject,
+      sourceCode,
+      'snippets/blog-comment-form.liquid',
+    );
+    expect(offenses.map((o) => o.message)).toEqual([]);
+  });
+
+  it('should export frozen contextual-object lists', () => {
+    for (const list of [SECTION_CONTEXTUAL_OBJECTS, THEME_BLOCK_AND_SNIPPET_CONTEXTUAL_OBJECTS]) {
+      expect(Object.isFrozen(list)).toBe(true);
+    }
+  });
+
+  it('should keep the app-mode block and snippet objects unchanged', async () => {
+    for (const file of ['snippets/my-snippet.liquid', 'blocks/my-block.liquid']) {
+      for (const object of ['predictive_search', 'comment']) {
+        const sourceCode = `{% doc %} @param {string} x - x {% enddoc %}{{ ${object} }}`;
+        const offenses = await runLiquidCheck(
+          UndefinedObject,
+          sourceCode,
+          file,
+          {},
+          undefined,
+          'app',
+        );
+        expect(offenses, `Expected offense for '${object}' in app-mode ${file}`).toHaveLength(1);
+      }
     }
   });
 

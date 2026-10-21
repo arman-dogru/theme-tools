@@ -16,6 +16,8 @@ import {
   SourceCodeType,
   StringLiteralType,
   visit,
+  SECTION_CONTEXTUAL_OBJECTS,
+  THEME_BLOCK_AND_SNIPPET_CONTEXTUAL_OBJECTS,
 } from '@shopify/theme-check-common';
 import { assert, beforeEach, describe, expect, it, vi } from 'vitest';
 import { URI } from 'vscode-uri';
@@ -779,6 +781,56 @@ describe('Module: TypeSystem', () => {
       );
       expect(inferredType).to.eql('unknown');
     }
+  });
+
+  describe('parity with UndefinedObject contextual objects (issue #944)', () => {
+    const inferAt = async (object: string, path: string) => {
+      const ast = toLiquidHtmlAST(`{{ ${object} }}`);
+      const variableOutput = ast.children[0];
+      assert(isLiquidVariableOutput(variableOutput));
+      return typeSystem.inferType(
+        variableOutput.markup,
+        ast,
+        pathUtils.normalize(URI.from({ scheme: 'file', path })),
+      );
+    };
+
+    // The lists are imported from theme-check-common, the same ones the check
+    // uses, so adding an object there without the editor following fails here.
+    const cases: [string, readonly string[]][] = [
+      ['sections/a.liquid', SECTION_CONTEXTUAL_OBJECTS],
+      ['blocks/a.liquid', THEME_BLOCK_AND_SNIPPET_CONTEXTUAL_OBJECTS],
+      ['snippets/a.liquid', THEME_BLOCK_AND_SNIPPET_CONTEXTUAL_OBJECTS],
+    ];
+
+    it.each(cases)('types every contextual object of %s', async (path, objects) => {
+      expect(objects.length).toBeGreaterThan(0);
+      for (const object of objects) {
+        expect(await inferAt(object, path), `${object} in ${path}`).to.eql(object);
+      }
+    });
+
+    it('types predictive_search, recommendations and comment in theme-mode snippets and blocks', async () => {
+      for (const path of ['snippets/predictive-search-results.liquid', 'blocks/a.liquid']) {
+        for (const object of [
+          'section',
+          'block',
+          'predictive_search',
+          'recommendations',
+          'comment',
+        ]) {
+          expect(await inferAt(object, path), `${object} in ${path}`).to.eql(object);
+        }
+      }
+    });
+
+    it('keeps section objects unknown outside sections, blocks and snippets', async () => {
+      for (const path of ['templates/search.liquid', 'layout/theme.liquid', 'file.liquid']) {
+        for (const object of SECTION_CONTEXTUAL_OBJECTS) {
+          expect(await inferAt(object, path), `${object} in ${path}`).to.eql('unknown');
+        }
+      }
+    });
   });
 
   describe('LiquidDoc inferred type', () => {

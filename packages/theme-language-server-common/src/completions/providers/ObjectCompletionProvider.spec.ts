@@ -375,12 +375,26 @@ describe('Module: ObjectCompletionProvider', async () => {
     }
   });
 
-  it('should not complete block-level contextual variables in snippets when in theme mode', async () => {
-    const source = `{{ section█ }}`;
-    await expect(provider, source).to.complete(
-      { source, relativePath: 'snippets/my-snippet.liquid' },
-      [],
-    );
+  it('should complete every section object in theme-mode snippets and blocks (#944)', async () => {
+    for (const relativePath of ['snippets/my-snippet.liquid', 'blocks/my-block.liquid']) {
+      for (const object of ['section', 'block', 'predictive_search', 'recommendations']) {
+        const source = `{{ ${object}█ }}`;
+        await expect(provider, source).to.complete(
+          { source, relativePath },
+          expect.arrayContaining([expect.objectContaining({ label: object })]),
+        );
+      }
+    }
+  });
+
+  it('should not complete section objects in templates', async () => {
+    for (const object of ['predictive_search', 'recommendations']) {
+      const source = `{{ ${object}█ }}`;
+      await expect(provider, source).to.complete(
+        { source, relativePath: 'templates/search.liquid' },
+        [],
+      );
+    }
   });
 
   it('should not complete anything if there is nothing to complete', async () => {
