@@ -1,12 +1,12 @@
 
  RUN  v4.1.11 .
 
- ❯ |shared| packages/theme-language-server-common/src/TypeSystem.spec.ts (102 tests | 1 failed | 1 skipped) 106ms
-     × should type the contextual objects UndefinedObject allows in theme-mode snippets (issue #944) 7ms
- ❯ |shared| packages/theme-check-common/src/checks/undefined-object/index.spec.ts (48 tests | 1 failed) 52ms
-     × should allow predictive_search in snippets with doc tags when in theme mode (issue #944) 4ms
- ❯ |isolated| packages/theme-language-server-common/src/completions/providers/ObjectCompletionProvider.spec.ts (33 tests | 1 failed) 117ms
-     × should complete the contextual objects UndefinedObject allows in theme-mode snippets (#944) 8ms
+ ❯ |shared| packages/theme-language-server-common/src/TypeSystem.spec.ts (102 tests | 1 failed | 1 skipped)
+     × should type the contextual objects UndefinedObject allows in theme-mode snippets (issue #944)
+ ❯ |shared| packages/theme-check-common/src/checks/undefined-object/index.spec.ts (48 tests | 1 failed)
+     × should allow predictive_search in snippets with doc tags when in theme mode (issue #944)
+ ❯ |isolated| packages/theme-language-server-common/src/completions/providers/ObjectCompletionProvider.spec.ts (33 tests | 1 failed)
+     × should complete the contextual objects UndefinedObject allows in theme-mode snippets (#944)
 
 ⎯⎯⎯⎯⎯⎯⎯ Failed Tests 3 ⎯⎯⎯⎯⎯⎯⎯
 
@@ -79,4 +79,4 @@ AssertionError: expected [ Array(1) ] to deeply equal []
 
  Test Files  3 failed (3)
       Tests  3 failed | 179 passed | 1 skipped (183)
-      
+
