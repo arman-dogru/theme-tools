@@ -23,8 +23,20 @@ if ! git diff --quiet || ! git diff --cached --quiet; then
   echo "capture.sh: tracked files have uncommitted changes; commit or stash them first" >&2
   exit 1
 fi
+TMP=$(mktemp -d)
 restore() { git checkout -q HEAD -- $SRC; }
-trap restore EXIT
+# On any failure, also put the committed captures back, so a failed run leaves
+# no partial output and a clean tree (the tree was clean when we started).
+on_exit() {
+  status=$?
+  restore
+  if [ "$status" -ne 0 ]; then
+    git checkout -q HEAD -- "$D"
+    echo "capture.sh: failed (exit $status); restored $D to HEAD" >&2
+  fi
+  rm -rf "$TMP"
+}
+trap on_exit EXIT
 
 build() {
   (cd packages/theme-check-common && npx tsc -b tsconfig.build.json)
@@ -36,7 +48,11 @@ capture() {
   build
   node $D/offenses.mjs . $D/repro-theme > $D/theme-check-$1.txt
   node $D/ls-capture.mjs . > $D/ls-$1.tsv
-  npx vitest run $SPECS 2>&1 | strip | node $D/sort-vitest.mjs > $D/tests-$1.txt || true
+  # vitest exits non-zero on base sources (the new tests fail there), so only
+  # its exit status is ignored. strip/sort-vitest.mjs failures abort the run.
+  npx vitest run $SPECS > "$TMP/vitest-$1.txt" 2>&1 || true
+  strip < "$TMP/vitest-$1.txt" | node $D/sort-vitest.mjs > "$TMP/tests-$1.txt"
+  mv "$TMP/tests-$1.txt" $D/tests-$1.txt
 }
 
 git checkout -q "$BASE" -- $SRC
