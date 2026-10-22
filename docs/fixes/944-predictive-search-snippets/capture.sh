@@ -2,7 +2,7 @@
 # Regenerates every capture for the #944 fix:
 #   theme-check-{before,after}.txt  UndefinedObject on repro-theme (offenses.mjs)
 #   ls-{before,after}.tsv           language server completions/hover (ls-capture.mjs)
-#   tests-{before,after}.txt        the touched spec files
+#   tests-{before,after}.txt        the touched spec files (sort-vitest.mjs fixes the file order)
 #   before-after.png, ls-before-after.png (render_capture.py, needs matplotlib)
 # "Before" is BASE's check and TypeSystem sources with this branch's tests.
 # Run from the theme-tools root on the fix branch with a clean tree:
@@ -13,6 +13,12 @@ D=docs/fixes/944-predictive-search-snippets
 SRC="packages/theme-check-common/src/checks/undefined-object/index.ts packages/theme-language-server-common/src/TypeSystem.ts"
 SPECS="packages/theme-check-common/src/checks/undefined-object packages/theme-language-server-common/src/TypeSystem.spec.ts packages/theme-language-server-common/src/completions/providers/ObjectCompletionProvider.spec.ts"
 
+# Check every prerequisite before touching any tracked file, so a failed run
+# can't leave the tree dirty (and make the next run refuse to start).
+if ! "${PYTHON:-python3}" -c 'import matplotlib' 2>/dev/null; then
+  echo "capture.sh: ${PYTHON:-python3} has no matplotlib; set PYTHON to an interpreter that has it" >&2
+  exit 1
+fi
 if ! git diff --quiet || ! git diff --cached --quiet; then
   echo "capture.sh: tracked files have uncommitted changes; commit or stash them first" >&2
   exit 1
@@ -30,7 +36,7 @@ capture() {
   build
   node $D/offenses.mjs . $D/repro-theme > $D/theme-check-$1.txt
   node $D/ls-capture.mjs . > $D/ls-$1.tsv
-  npx vitest run $SPECS 2>&1 | strip > $D/tests-$1.txt || true
+  npx vitest run $SPECS 2>&1 | strip | node $D/sort-vitest.mjs > $D/tests-$1.txt || true
 }
 
 git checkout -q "$BASE" -- $SRC

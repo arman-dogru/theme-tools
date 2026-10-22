@@ -76,7 +76,7 @@ def render_ls():
                        "#fde2e2" if changed else "white", "#e2f5e6" if changed else "white"])
     fig, ax = plt.subplots(figsize=(14, 0.75 * (len(ids) + 2)))
     ax.axis("off")
-    ax.set_title("Language server (bundled docset): base ee5ab68 vs branch; "
+    ax.set_title("Language server (docset built by pnpm build): base ee5ab68 vs branch; "
                  "shaded cells changed; C*/H* are targets, K* are controls (expected unchanged)",
                  loc="left", fontsize=11)
     table = ax.table(cellText=cells, cellColours=colors,
