@@ -3,6 +3,8 @@ import { UndefinedObject } from './index';
 import { runLiquidCheck, highlightedOffenses, check } from '../../test';
 import { Offense } from '../../types';
 import {
+  APP_BLOCK_CONTEXTUAL_OBJECTS,
+  CHECKOUT_LAYOUT_CONTEXTUAL_OBJECTS,
   SECTION_CONTEXTUAL_OBJECTS,
   THEME_BLOCK_AND_SNIPPET_CONTEXTUAL_OBJECTS,
 } from '../../contextual-objects';
@@ -403,10 +405,24 @@ describe('Module: UndefinedObject', () => {
     }
   });
 
-  it('should keep theme snippets and blocks a superset of the section objects (parity)', () => {
-    expect([...THEME_BLOCK_AND_SNIPPET_CONTEXTUAL_OBJECTS].sort()).toEqual(
-      ['app', 'block', ...SECTION_CONTEXTUAL_OBJECTS].sort(),
-    );
+  it('should define the theme snippet/block list as app + block + the section objects', () => {
+    // Pins the exported lists to literal values. This is not a cross-package
+    // parity guard: that is the TypeSystem.spec.ts test that types every entry
+    // of these lists in the language server.
+    expect([...SECTION_CONTEXTUAL_OBJECTS]).toEqual([
+      'section',
+      'predictive_search',
+      'recommendations',
+      'comment',
+    ]);
+    expect([...THEME_BLOCK_AND_SNIPPET_CONTEXTUAL_OBJECTS]).toEqual([
+      'app',
+      'block',
+      'section',
+      'predictive_search',
+      'recommendations',
+      'comment',
+    ]);
   });
 
   it('accepts section objects in a snippet even when only a layout renders it (known limitation)', async () => {
@@ -444,9 +460,16 @@ describe('Module: UndefinedObject', () => {
     expect(offenses.map((o) => o.message)).toEqual([]);
   });
 
-  it('should export frozen contextual-object lists', () => {
-    for (const list of [SECTION_CONTEXTUAL_OBJECTS, THEME_BLOCK_AND_SNIPPET_CONTEXTUAL_OBJECTS]) {
-      expect(Object.isFrozen(list)).toBe(true);
+  it('should export all four contextual-object lists frozen', () => {
+    const lists = {
+      SECTION_CONTEXTUAL_OBJECTS,
+      APP_BLOCK_CONTEXTUAL_OBJECTS,
+      THEME_BLOCK_AND_SNIPPET_CONTEXTUAL_OBJECTS,
+      CHECKOUT_LAYOUT_CONTEXTUAL_OBJECTS,
+    };
+    for (const [name, list] of Object.entries(lists)) {
+      expect(Object.isFrozen(list), name).toBe(true);
+      expect(() => (list as string[]).push('x'), name).toThrow(TypeError);
     }
   });
 
