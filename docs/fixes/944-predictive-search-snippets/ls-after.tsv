@@ -1,0 +1,13 @@
+# docset 40f966fc7793462726d9f8573c8d522f8ab44c54 (packages/theme-check-docs-updater/data)
+C1	theme	snippets/s.liquid	{{ pre█ }}	1: predictive_search
+C2	theme	snippets/s.liquid	{{ predictive_search.█ }}	4: performed, resources, terms, types
+C3	theme	snippets/s.liquid	{{ recommendations.█ }}	4: intent, performed?, products, products_count
+C4	theme	snippets/s.liquid	{{ section.█ }}	6: blocks, id, index, index0, location, settings
+C5	theme	snippets/s.liquid	{% for p in predictive_search.resources.products %}{{ p.ti█ }}{% endfor %}	1: title
+C6	theme	blocks/b.liquid	{{ predictive_search.█ }}	4: performed, resources, terms, types
+C7	theme	snippets/s.liquid	{% form 'new_comment', article %}{{ comment.█ }}{% endform %}	8: author, content, created_at, email, id, status, updated_at, url
+H1	theme	snippets/s.liquid	{{ predictive_sea█rch }}	### predictive_search: `predictive_search`
+H2	theme	snippets/s.liquid	{{ comm█ent.status }}	### comment: `comment`
+K1	theme	templates/search.liquid	{{ predictive_search.█ }}	(none)
+K2	app	snippets/s.liquid	{{ pre█ }}	(none)
+K3	theme	blocks/b.liquid	{{ recommenda█tions }}	### recommendations: `recommendations`

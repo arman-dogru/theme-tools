@@ -1,0 +1,10 @@
+{% doc %}
+  These stay reported: render does not pass tag-scoped variables
+  (form, paginate) into a snippet, and undefined_thing is a typo.
+
+  @param {string} label - A label
+{% enddoc %}
+{{ label }}
+{{ form.errors }}
+{{ paginate.pages }}
+{{ undefined_thing }}

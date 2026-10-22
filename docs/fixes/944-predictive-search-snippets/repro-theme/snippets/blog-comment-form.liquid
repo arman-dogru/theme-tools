@@ -1,0 +1,12 @@
+{% doc %}
+  Comment form, after Horizon's snippets/blog-comment-form.liquid. Once a
+  new_comment form is posted, `comment` is globally available (upstream ec1fbd7).
+
+  @param {object} article - The article
+{% enddoc %}
+{% form 'new_comment', article %}
+  {%- if comment.status == 'unapproved' -%}
+    <p>Your comment is awaiting moderation.</p>
+  {%- endif -%}
+  <input type="text" name="comment[author]">
+{% endform %}

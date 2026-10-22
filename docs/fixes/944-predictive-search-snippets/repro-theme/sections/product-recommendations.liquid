@@ -1,0 +1,9 @@
+{%- if recommendations.performed -%}
+  {% render 'recommendation-list', heading: 'You may also like' %}
+{%- endif -%}
+
+{% schema %}
+{
+  "name": "Product recommendations"
+}
+{% endschema %}
