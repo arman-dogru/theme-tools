@@ -1,8 +1,10 @@
 <!-- DRAFT for Shopify/theme-tools, for Arman to review, edit and open himself.
-     Head branch: arman-dogru:upstream-944-section-objects-in-theme-snippets (2 commits, 4ba504e + eace325, on upstream main 20f8edf; upstream squash-merges).
+     Head branch: arman-dogru:upstream-944-section-objects-in-theme-snippets (3 commits, 4ba504e + eace325 + 02052d7, on upstream main 20f8edf; upstream squash-merges).
      Before opening: replace the two "Drag in" lines below with the PNGs. Download them from the pinned links
-     (or from docs/fixes/944-predictive-search-snippets/ on fork branch fix/944-predictive-search-in-doc-snippets at 5ca4a59)
+     (or from docs/fixes/944-predictive-search-snippets/ on fork branch fix/944-predictive-search-in-doc-snippets at d2faf9c)
      and drag them into the GitHub editor, so they're uploaded to the upstream PR rather than linked to the fork.
+     Test counts: 7192 is this branch (base 20f8edf). Fork PR #2 reports 7182 because its base ee5ab68 predates
+     4 spec files / 10 tests that main has since added. Both counts are on a tree without build output.
      Upstream's CLA check will ask you to sign. -->
 
 **AI assistance disclosure:** This change was investigated, implemented and tested with help from AI coding agents. I've reviewed the full diff and the before/after results, and I'm responsible for the reasoning and test plan.
@@ -17,7 +19,7 @@ The rule this PR applies comes from the [`render` docs](https://shopify.dev/docs
 
 This is potential contextual availability, not a guarantee. The check only sees the file path, not the caller: a snippet can also be rendered straight from a layout or template (e.g. `layout/theme.liquid` doing `{% render 'search-results' %}`), where these objects aren't defined, and such a snippet is accepted too. That's the same broad allowance main already makes for `section` and `block` in snippets (#1267). The repro includes that case as a documented known limitation; precise caller analysis is out of scope here.
 
-#1267 also changed only the check. The language server kept typing only `app` in theme-mode snippets, so the editor stopped warning about `section` there but still gave no completion or hover for `section.`. This PR moves the contextual-object definitions into `@shopify/theme-check-common` (`contextual-objects.ts`, frozen with `Object.freeze`) and uses them in both `UndefinedObject` and `TypeSystem`, so the two share the same object lists. The file-context classification is *not* shared: the check uses `relativePath.startsWith(...)` and `TypeSystem` uses path regexes, so they can still disagree on unusual paths. One parity test imports the shared lists; the other new tests use literal expectations. Note that the `TypeSystem` change applies to every theme-mode snippet. It is not gated on `{% doc %}` the way the check is.
+#1267 also changed only the check. The language server kept typing only `app` in theme-mode snippets, so the editor stopped warning about `section` there but still gave no completion or hover for `section.`. This PR moves the contextual-object definitions into `@shopify/theme-check-common` (`contextual-objects.ts`, frozen with `Object.freeze`) and uses them in both `UndefinedObject` and `TypeSystem`, so the two share the same object lists. The file-context classification is *not* shared: the check uses `relativePath.startsWith(...)` and `TypeSystem` uses path regexes, so they can still disagree on unusual paths. The `TypeSystem` parity test runs every entry of the shared lists through the language server, so it fails if the two sides drift. The other new tests use literal expectations, including a check-side test that pins the lists' contents. Note that the `TypeSystem` change applies to every theme-mode snippet. It is not gated on `{% doc %}` the way the check is.
 
 `ObjectCompletionProvider.spec.ts`: "should not complete block-level contextual variables in snippets when in theme mode" (from #346's fix) expected no `section` completion in theme snippets. That matched the check at the time, but #1267 left the language server inconsistent with the check. The test is replaced by positive completion tests for snippets and blocks, plus a negative test for templates.
 
@@ -53,9 +55,9 @@ Repro theme: a predictive search section rendering a doc'd snippet and holding a
 | `snippets/true-positives.liquid` 'form', 'paginate', 'undefined_thing' | reported | reported |
 | **Total** | **12** | **5** |
 
-_Drag in `before-after.png` here: [https://github.com/arman-dogru/theme-tools/blob/5ca4a599bb5d73f47760df5331b12ccac3fe1a84/docs/fixes/944-predictive-search-snippets/before-after.png](https://github.com/arman-dogru/theme-tools/blob/5ca4a599bb5d73f47760df5331b12ccac3fe1a84/docs/fixes/944-predictive-search-snippets/before-after.png?raw=true) (UndefinedObject offenses on the repro theme, before vs after)._
+_Drag in `before-after.png` here: [https://github.com/arman-dogru/theme-tools/blob/d2faf9cf0a08fab2930d4de4b899e5d5634557a8/docs/fixes/944-predictive-search-snippets/before-after.png](https://github.com/arman-dogru/theme-tools/blob/d2faf9cf0a08fab2930d4de4b899e5d5634557a8/docs/fixes/944-predictive-search-snippets/before-after.png?raw=true) (UndefinedObject offenses on the repro theme, before vs after)._
 
-Language server, using the docset bundled by `pnpm build` (`packages/theme-check-docs-updater/data`, revision 40f966f) through `CompletionsProvider` / `HoverProvider`, theme mode unless noted:
+Language server, using the docset that `pnpm build` writes to `packages/theme-check-docs-updater/data` (revision 40f966f) through `CompletionsProvider` / `HoverProvider`, theme mode unless noted:
 
 | Probe | main | this PR |
 | --- | --- | --- |
@@ -72,16 +74,17 @@ Language server, using the docset bundled by `pnpm build` (`packages/theme-check
 | control: app-mode snippet `{{ pre█ }}` | none | none |
 | control: hover `recommendations` in a block | docs | docs |
 
-_Drag in `ls-before-after.png` here: [https://github.com/arman-dogru/theme-tools/blob/5ca4a599bb5d73f47760df5331b12ccac3fe1a84/docs/fixes/944-predictive-search-snippets/ls-before-after.png](https://github.com/arman-dogru/theme-tools/blob/5ca4a599bb5d73f47760df5331b12ccac3fe1a84/docs/fixes/944-predictive-search-snippets/ls-before-after.png?raw=true) (language server completion/hover probes, before vs after)._
+_Drag in `ls-before-after.png` here: [https://github.com/arman-dogru/theme-tools/blob/d2faf9cf0a08fab2930d4de4b899e5d5634557a8/docs/fixes/944-predictive-search-snippets/ls-before-after.png](https://github.com/arman-dogru/theme-tools/blob/d2faf9cf0a08fab2930d4de4b899e5d5634557a8/docs/fixes/944-predictive-search-snippets/ls-before-after.png?raw=true) (language server completion/hover probes, before vs after)._
 
 Dawn 16.0.0 and Horizon (dfad90d), all checks: 9 / 9 and 6 / 6 offenses before and after, with identical lines.
 
 Tests added in this PR, besides the snippet and block allowances:
 - regression tests for inference and completion of `predictive_search.resources.products` (and the loop variable) in a doc-tagged snippet;
 - negative app-mode tests: `predictive_search` and `comment` are neither typed nor completed in app-mode snippets;
-- a test that pins the known limitation (a snippet rendered only from a layout is accepted).
+- a test that pins the known limitation (a snippet rendered only from a layout is accepted);
+- a test that all four exported lists are frozen.
 
-The 3 touched spec files fail 12 tests on main's sources (184 passed, 1 skipped) and pass on this branch (196 passed, 1 skipped). The app-mode negatives fall into two groups. The completion test and the app-mode inference assertions pass on main too, as guards. The inference test also asserts that theme mode is typed, and that assertion is what fails on main. Full `CI=true vitest run` on Node 20, 22 and 24: 272 files passed (1 skipped), 7192 passed, 5 skipped. `pnpm -r type-check` and prettier are clean.
+The 3 touched spec files fail 12 tests on main's sources (184 passed, 1 skipped) and pass on this branch (196 passed, 1 skipped). The app-mode negatives fall into two groups. The completion test and the app-mode inference assertions pass on main too, as guards. The inference test also asserts that theme mode is typed, and that assertion is what fails on main. Full `CI=true vitest run` on Node 20, 22 and 24: 272 files passed (1 skipped), 7192 passed, 5 skipped. That count is on a tree without build output: after `pnpm build`, vitest also collects 6 compiled `packages/codemirror-language-client/dist/esm` spec copies (27 tests), giving 278 files and 7219 tests. `pnpm -r type-check` and prettier are clean.
 
 - [x] I added screenshots of the changes (before and after the changes if applicable)
 
